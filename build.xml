@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<project name="trident" default="all">
+	<property file="local.build.properties" />
+	<property file="build.properties" />
+
+	<!-- Compiler options -->
+	<patternset id="javac.excluded" />
+	<patternset id="javac.resources">
+		<include name="**/?*.properties" />
+		<include name="**/?*.xml" />
+		<include name="**/?*.gif" />
+		<include name="**/?*.png" />
+		<include name="**/?*.jpeg" />
+		<include name="**/?*.jpg" />
+		<include name="**/?*.ttf" />
+		<include name="**/?*.license" />
+	</patternset>
+	<!-- JDK definitions -->
+
+	<path id="jdk.classpath">
+		<fileset dir="${jdk.home}">
+			<include name="jre/lib/charsets.jar" />
+			<include name="jre/lib/deploy.jar" />
+			<include name="jre/lib/javaws.jar" />
+			<include name="jre/lib/jce.jar" />
+			<include name="jre/lib/jsse.jar" />
+			<include name="jre/lib/plugin.jar" />
+			<include name="jre/lib/rt.jar" />
+			<include name="jre/lib/ext/dnsns.jar" />
+			<include name="jre/lib/ext/localedata.jar" />
+			<include name="jre/lib/ext/sunjce_provider.jar" />
+			<include name="jre/lib/ext/sunpkcs11.jar" />
+		</fileset>
+	</path>
+
+	<property name="project.jdk.home" value="${jdk.home}" />
+	<property name="project.jdk.classpath" value="jdk.classpath" />
+	<!-- Project Libraries -->
+	<!-- Global Libraries -->
+
+	<dirname property="module.trident.basedir" file="${ant.file}" />
+
+	<property name="javac.args.trident" value="${javac.args}" />
+
+	<property name="trident.build.dir" value="${module.trident.basedir}/build/" />
+	<property name="trident.output.dir" value="${trident.build.dir}/classes" />
+	<property name="trident.drop.dir" value="${module.trident.basedir}/drop" />
+	<property name="trident.lib.dir" value="${module.trident.basedir}/lib" />
+	<property name="trident.src.dir" value="${module.trident.basedir}/src/" />
+	<property name="trident.version" value="1.3.0" />
+	<property name="trident.versionName" value="1.3RC Diamond In The Sky" />
+
+	<path id="trident.module.bootclasspath">
+		<!-- Paths to be included in compilation bootclasspath -->
+	</path>
+
+	<property name="module.jdk.home.trident" value="${project.jdk.home}" />
+	<property name="module.jdk.classpath.trident" value="${project.jdk.classpath}" />
+
+	<path id="trident.module.classpath">
+		<path refid="${module.jdk.classpath.trident}" />
+	</path>
+
+	<patternset id="excluded.from.module.trident" />
+
+	<patternset id="excluded.from.compilation.trident">
+		<patternset refid="excluded.from.module.trident" />
+		<patternset refid="javac.excluded" />
+	</patternset>
+
+	<path id="trident.module.sourcepath">
+		<dirset dir="${trident.src.dir}">
+			<include name="org/pushingpixels/trident" />
+		</dirset>
+	</path>
+
+	<path id="trident.module.sourcepath.test">
+		<dirset dir="${trident.src.dir}">
+			<include name="test" />
+		</dirset>
+	</path>
+
+	<target name="compile.module.trident" depends="compile.module.trident.production" description="compile module trident" />
+
+	<target name="compile.module.trident.production" description="compile module trident production classes">
+		<mkdir dir="${trident.output.dir}" />
+		<javac source="${javac.source}" target="${javac.target}" encoding="${javac.encoding}" destdir="${trident.output.dir}" debug="${javac.debug}" nowarn="${javac.generate.no.warnings}" memoryMaximumSize="${javac.max.memory}" fork="true" executable="${module.jdk.home.trident}/bin/javac">
+			<compilerarg line="${javac.args.trident}" />
+			<bootclasspath refid="trident.module.bootclasspath" />
+			<classpath refid="trident.module.classpath" />
+			<src refid="trident.module.sourcepath" />
+			<patternset refid="excluded.from.compilation.trident" />
+		</javac>
+		<copy todir="${trident.output.dir}">
+			<fileset dir="${trident.src.dir}">
+				<patternset refid="javac.resources" />
+				<type type="file" />
+				<patternset refid="excluded.from.compilation.trident" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="compile.module.trident.test" description="compile module trident test classes">
+		<mkdir dir="${trident.output.dir}" />
+		<javac source="${javac.source}" target="${javac.target}" encoding="${javac.encoding}" destdir="${trident.output.dir}" debug="${javac.debug}" nowarn="${javac.generate.no.warnings}" memoryMaximumSize="${javac.max.memory}" fork="true" executable="${module.jdk.home.trident}/bin/javac">
+			<compilerarg line="${javac.args.trident}" />
+			<bootclasspath refid="trident.module.bootclasspath" />
+			<classpath refid="trident.module.classpath" />
+			<src refid="trident.module.sourcepath.test" />
+			<patternset refid="excluded.from.compilation.trident" />
+		</javac>
+		<copy todir="${trident.output.dir}">
+			<fileset dir="${trident.src.dir}">
+				<patternset refid="javac.resources" />
+				<type type="file" />
+				<patternset refid="excluded.from.compilation.trident" />
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="clean.module.trident" description="cleanup module">
+		<delete dir="${trident.output.dir}" />
+	</target>
+
+	<target name="init" description="Build initialization">
+		<!-- Perform any build initialization in this target -->
+	</target>
+
+	<target name="jar-bin" description="create runtime jar">
+		<mkdir dir="${trident.drop.dir}" />
+		<delete file="${trident.drop.dir}/trident.jar" />
+		<jar compress="true" destfile="${trident.drop.dir}/trident.jar">
+			<fileset dir="${trident.output.dir}/" includes="org/**,META-INF/**" />
+			<fileset dir="${module.trident.basedir}/" includes="resources/**" />
+			<manifest>
+				<attribute name="Trident-Version" value="${trident.version}" />
+				<attribute name="Trident-VersionName" value="${trident.versionName}" />
+				<attribute name="Trident-BuildStamp" value="${build.time}" />
+			</manifest>
+		</jar>
+		<copy file="${trident.drop.dir}/trident.jar" todir="${module.trident.basedir}/www/webstart" />
+	</target>
+
+	<target name="jar-tst" description="create test jar">
+		<mkdir dir="${trident.drop.dir}" />
+		<delete file="${trident.drop.dir}/trident-tst.jar" />
+		<jar compress="true" destfile="${trident.drop.dir}/trident-tst.jar">
+			<fileset dir="${trident.output.dir}/" includes="test/**" />
+			<fileset dir="${module.trident.basedir}/" includes="resources/**" />
+			<manifest>
+				<attribute name="Trident-Version" value="${trident.version}" />
+				<attribute name="Trident-VersionName" value="${trident.versionName}" />
+				<attribute name="Trident-BuildStamp" value="${build.time}" />
+			</manifest>
+		</jar>
+		<copy file="${trident.drop.dir}/trident-tst.jar" todir="${module.trident.basedir}/www/webstart" />
+	</target>
+
+	<target name="distro" description="create distribution">
+		<delete file="${module.trident.basedir}/trident-all.zip" />
+		<zip destfile="${module.trident.basedir}/trident-all.zip" compress="true">
+			<fileset dir="${module.trident.basedir}">
+				<include name="src/**" />
+				<include name="build*.xml" />
+				<include name="build*.properties" />
+				<!--
+				<include name="www/index.html" />
+				<include name="www/docs/**" />
+				<include name="www/images/**" />
+				<include name="docs/**" />
+				-->
+			</fileset>
+		</zip>
+	</target>
+
+	<target name="timestamp">
+		<tstamp>
+			<format property="build.time" pattern="MMMM d, yyyy hh:mm:ss z" />
+		</tstamp>
+		<echo message="Beginning build: ${build.time}" />
+		<echo message="Java home: ${java.home}" />
+		<echo message="Java version: ${ant.java.version}" />
+		<echo message="Ant version: ${ant.version}" />
+		<echo message="JavaC home: ${jdk.home}" />
+	</target>
+
+	<target name="jar" depends="jar-bin" description="create all jars" />
+
+	<target name="clean" depends="clean.module.trident" description="cleanup all" />
+
+	<target name="all" depends="timestamp, init, clean, compile.module.trident, jar, compile.module.trident.test, jar-tst" description="build all" />
+</project>

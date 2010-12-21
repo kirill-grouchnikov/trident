@@ -1,0 +1,68 @@
+== Interpolating foreground color of an SWT radio button ==
+The following example shows how to smoothly change the foreground color of an SWT radio button on mouse rollover. This example showcases a few Trident utilities that simplify animations on SWT controls.
+
+<pre name="java">
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseTrackAdapter;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.*;
+import org.pushingpixels.trident.Timeline;
+
+public class ButtonFg {
+	public static void main(String[] args) {
+		Display display = new Display();
+		Shell shell = new Shell(display);
+		shell.setSize(300, 200);
+		GridLayout layout = new GridLayout();
+		shell.setLayout(layout);
+
+		Button button = new Button(shell, SWT.RADIO);
+		GridData gridData = new GridData(GridData.CENTER, GridData.CENTER,
+				true, false);
+		button.setLayoutData(gridData);
+
+		button.setText("sample");
+
+		Color blue = display.getSystemColor(SWT.COLOR_BLUE);
+		Color red = display.getSystemColor(SWT.COLOR_RED);
+		button.setForeground(blue);
+
+		final Timeline rolloverTimeline = new Timeline(button);
+		rolloverTimeline.addPropertyToInterpolate("foreground", blue, red);
+		rolloverTimeline.setDuration(2500);
+		button.addMouseTrackListener(new MouseTrackAdapter() {
+			@Override
+			public void mouseEnter(MouseEvent e) {
+				rolloverTimeline.play();
+			}
+
+			@Override
+			public void mouseExit(MouseEvent e) {
+				rolloverTimeline.playReverse();
+			}
+		});
+
+		shell.open();
+		while (!shell.isDisposed()) {
+			if (!display.readAndDispatch())
+				display.sleep();
+		}
+		display.dispose();
+	}
+}
+</pre>
+
+* Lines 18-21 create a <code>Button</code> and add it to the center of the frame (setting the <code>GridLayout</code>).
+* Line 27 sets the foreground of the radio button to blue
+* Line 29 creates a new timeline associated with this button.
+* Line 30 specifies that the timeline interpolates the button foreground color between blue and red.
+* Lines 32-42 add a mouse track listener to the button. When the mouse enters the button area, the timeline is played. When the mouse exits the button area, the timeline is played in reverse.
+
+This example shows how the <code>Control.setForeground(Color)</code> method is used together with the built in property interpolator for the <code>org.eclipse.swt.graphics.Color</code> class to run the timeline that interpolates the foreground color of an SWT radio button. Note that since the <code>Control.setForeground(Color)</code> also repaints the button, there is no need to explicitly repaint it on every timeline pulse.
+
+If you debug this application and put a breakpoint in the <code>Control.setForeground(Color)</code> method, you will see that it is called on the [http://help.eclipse.org/stable/index.jsp?topic=/org.eclipse.platform.doc.isv/guide/swt_threading.htm SWT Thread]. This is a built-in capability of the Trident core. It recognizes that the timeline is associated with a SWT component, and calls the setter method (during the timeline pulses) on the SWT thread.
+
+Finally, since we are using the <code>Timeline.play()</code> and <code>Timeline.playReverse()</code> methods, the interpolation can be reversed in the middle if the user moves the mouse quickly. The rollover timeline in our example takes 2.5 seconds to complete. Suppose the user moves the mouse over the button, and then after one second moves the mouse away. The call to <code>playReverse</code> detects that this very timeline [[TimelineLifecycle|is already playing]], and starts playing it in reverse from its '''current''' position.

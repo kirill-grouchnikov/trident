@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jnlp spec="1.0+" codebase="https://kenai.com/svn/trident~source/www/webstart"
+ href="Snake.jnlp">
+<information>
+  <title>Trident demo</title>
+  <vendor>Kirill Grouchnikov</vendor>
+  <description>Trident demo</description> 
+  <description kind="short">Trident demo</description> 
+  <offline-allowed/> 
+</information>
+<offline-allowed/>
+<security>
+  <all-permissions/>
+</security>
+<resources>
+  <property name="jnlp.packEnabled" value="true"/>
+  <j2se version="1.6+" />
+  <jar href="trident-tst.jar"/>
+  <jar href="trident.jar"/>
+</resources>
+<application-desc main-class="test.swing.Snake" />
+</jnlp>

@@ -1,0 +1,35 @@
+== Project goal ==
+
+The goal of this project is to provide a powerful and extensible animation library for Java applications. It requires Java 6+ at compile and runtime, and is available under [http://www.opensource.org/licenses/bsd-license.php BSD license]. Use links on the left sidebar to navigate to projects mailing lists, forums, download section, issue tracker and source code repository.
+
+==== Trident basic concepts ====
+
+* [[TimelineOverview|Hello world]] 
+* [[TimelineInterpolatingFields|Interpolating fields]]
+* [[TimelineLifecycle|Timeline life cycle]]
+* [[TimelineAdditionalConfiguration|Duration fraction and timeline position]]
+
+==== Supporting Java UI toolkits ====
+
+* [[UIToolkitSupport|Special utilities for UI toolkits]]
+* [[SimpleSwingExample|Simple Swing example]]
+* [[SimpleSWTExample|Simple SWT example]]
+* [[ParallelSwingTimelines|More complex Swing example]]
+* [[ParallelSWTTimelines|More complex SWT example]]
+
+==== Timeline scenarios ====
+
+* [[TimelineScenarioIntroduction|Timeline scenario introduction]]
+* [[SimpleTimelineScenario|Timeline scenario Swing example]]
+
+==== Key frames ====
+
+* [[KeyFrameOverview|Key frames overview]]
+* [[KeyFrameExample|Key frames SWT example]]
+
+==== Extending the core behavior ====
+
+* [[ExtensionPoints|Extension points]]
+* [[CustomPulseSource|Custom pulse source]]
+* [[CustomPropertyInterpolators|Custom property interpolators]]
+* [[CustomUIToolkitHandlers|Supporting additional Java-based UI toolkits]]

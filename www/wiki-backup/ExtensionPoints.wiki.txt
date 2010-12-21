@@ -1,0 +1,47 @@
+== Core functionality ==
+The core functionality of the Trident library can be extended to address custom needs of the specific applications. Out of the box Trident supports:
+
+* The timeline pulses being fired by a dedicated thread that wakes up every 40ms and updates all the timelines
+* Interpolating [[TimelineInterpolatingFields|float and integer fields]] of any Java object that provides the matching public setter methods.
+* Swing and SWT [[UIToolkitSupport|UI toolkits]], respecting the threading rules and providing interpolators for the custom graphic classes
+
+Interested applications can use Trident plugins and Trident configuration APIs to:
+
+* Provide a custom pulse source to drive the timeline updates
+* Provide additional property interpolators for custom application classes
+* Support additional Java-based UI toolkits
+
+== Configuration APIs ==
+
+The <code>org.pushingpixels.trident.TridentConfig</code> class contains the published configuration APIs. The <code>TridentConfig.getInstance()</code> API retrieves an instance of this class which can then be used for:
+
+* Setting a custom [[CustomPulseSource|pulse source]]
+* Adding, removing and querying [[CustomPropertyInterpolators|property interpolators]]
+* Adding, removing and querying [[CustomUIToolkitHandlers|UI toolkit handlers]]
+
+== Plugins ==
+
+A Trident plugin is specified by the <code>META-INF/trident-plugin.properties</code> file that should be placed in the runtime classpath. Note that you can have multiple plugins in the same runtime environment - if each one is coming from a different classpath jar, for example. 
+
+The format of <code>trident-plugin.properties</code> is simple. Each line in this file should be of the following format:
+<pre>
+Key=FullyQualifiedClassName
+</pre>
+
+There supported keys are:
+
+* '''PropertyInterpolatorSource''' allows specifying [[CustomPropertyInterpolators|custom property interpolators]]
+* '''UIToolkitHandler''' allows supporting [[CustomUIToolkitHandlers|custom UI toolkits]]
+
+The core Trident library contains a plugin that supports Swing and SWT UI toolkits, as well as property interpolators for a few core classes. The plugin descriptor is <code>META-INF/trident-plugin.properties</code> in the <code>trident.jar</code>
+
+<pre>
+UIToolkitHandler=org.pushingpixels.trident.swing.SwingToolkitHandler
+PropertyInterpolatorSource=org.pushingpixels.trident.swing.AWTPropertyInterpolators
+
+UIToolkitHandler=org.pushingpixels.trident.swt.SWTToolkitHandler
+PropertyInterpolatorSource=org.pushingpixels.trident.swt.SWTPropertyInterpolators
+
+PropertyInterpolatorSource=org.pushingpixels.trident.interpolator.CorePropertyInterpolators
+</pre>
+

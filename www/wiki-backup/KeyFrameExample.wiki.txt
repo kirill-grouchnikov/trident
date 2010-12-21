@@ -1,0 +1,89 @@
+== Simple key frame example ==
+
+The SWT application discussed below implements a simple infinite progress indication illustrated in this screenshot:
+
+[[image: progressindication.png]]
+
+The bluish highlighter moves from left to right, fading in as it appears on the left edge, and fading out as it disappears on the right edge. There are two properties that control the appearance of the highlighter:
+
+* '''xPosition''' - an integer property that is linearly interpolated between the left X and the right X.
+* '''alpha''' - a float property that starts at <code>0.0f</code>, goes to <code>1.0f</code> at 30% of the timeline duration, stays at <code>1.0f</code> until the timeline reaches its 70% mark and then goes back to <code>0.0f</code>
+
+The '''alpha''' property in this example is interpolated using '''key frames'''.
+
+The progress indication panel is an SWT <code>Canvas</code> with two fields and matching public setters:
+
+<pre name="java">
+public static class ProgressPanel extends Canvas {
+	private int xPosition;
+
+	private float alpha;
+
+	public void setXPosition(int position) {
+		xPosition = position;
+	}
+
+	public void setAlpha(float alpha) {
+		this.alpha = alpha;
+	}
+}
+</pre>
+
+The constructor of this panel wires a mouse listener that starts the indefinite progress animation. The boolean <code>started</code> field tracks whether this animation has been started:
+
+<pre name="java">
+private boolean started;
+
+public ProgressPanel(Composite parent) {
+	super(parent, SWT.DOUBLE_BUFFERED);
+
+	this.xPosition = 0;
+	this.alpha = 0;
+
+	this.addMouseListener(new MouseAdapter() {
+		@Override
+		public void mouseUp(MouseEvent e) {
+			if (started)
+				return;
+			start();
+			started = true;
+		}
+	});
+}
+</pre> 
+
+The <code>start()</code> method creates a timeline that interpolates the X position and alpha of the progress highlight. The X position is a simple interpolation between two values (taking into account that the highlight should not be painted outside the track). The alpha interpolation uses key frames in lines 11-14:
+
+<pre name="java">
+public void start() {
+	Timeline progressTimeline = new Timeline(this);
+
+	int startX = (this.getBounds().width - INNER_WIDTH) / 2 + 18
+			+ HIGHLIGHTER_WIDTH / 2;
+	int endX = (this.getBounds().width + INNER_WIDTH) / 2 - 18
+			- HIGHLIGHTER_WIDTH / 2;
+	progressTimeline
+			.addPropertyToInterpolate("xPosition", startX, endX);
+
+	KeyValues alphaValues = KeyValues.create(0.0f, 1.0f, 1.0f, 0.0f);
+	KeyTimes alphaTimes = new KeyTimes(0.0f, 0.3f, 0.7f, 1.0f);
+	progressTimeline.addPropertyToInterpolate("alpha", new KeyFrames(
+			alphaValues, alphaTimes));
+
+	progressTimeline.setDuration(1500);
+	progressTimeline.playLoop(RepeatBehavior.LOOP);
+}
+</pre>
+
+The panel constructor also creates a repaint timeline so that the progress animation is properly reflected on the screen:
+<pre name="java">
+new SWTRepaintTimeline(this).playLoop(RepeatBehavior.LOOP);
+</pre>
+
+The actual painting is done in a custom <code>PaintListener</code> added in the panel constructor. The full code can be found in the <code>test.swt.ProgressIndication</code> class. It uses the matching SWT graphics operations to paint the overall background, the inner gradient background and contour, the track and the track highlight. The track highlight painting uses the current values of both <code>xPosition</code> and <code>alpha</code> fields to display the correct visuals.
+
+
+----
+<center>Click below for the WebStart demo of the Swing version</center>
+<center><a href="https://kenai.com/svn/trident~source/www/webstart/ProgressIndication.jnlp">[[image:webstart.png]]</a></center>
+

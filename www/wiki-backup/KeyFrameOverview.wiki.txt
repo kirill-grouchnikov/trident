@@ -1,0 +1,39 @@
+== Key frames ==
+
+The sample application in [[ParallelSwingTimelines|multiple timelines example]] has the following basic timeline:
+
+<pre name="java">
+this.rolloverTimeline = new Timeline(this);
+this.rolloverTimeline.addPropertyToInterpolate("backgroundColor",
+		Color.yellow, Color.black);
+</pre>
+
+This creates a timeline that animates the <code>backgroundColor</code> field from yellow to black when the timeline is <code>play</code>ed. What if you want to animate this field from yellow to green, and then to black? One option is to create two timelines, one to animate from yellow to green, and another to animate from green to black. Since the second timeline needs to wait until the first one ends, you will have to either use the [[TimelineLifecycle|timeline callbacks]], or create a parallel [[TimelineScenarioIntroduction|timeline scenario]].
+
+However, there is a simpler solution for interpolating the value of the specific field between more than two values - '''key frames'''. A key frame defines the value of the field at the particular [[TimelineAdditionalConfiguration|timeline duration fraction]] ('''not''' timeline position). 
+
+== Key times and key values ==
+
+In our example, the timeline to interpolate the background color will have three key frames:
+
+* The beginning key frame at key time <code>0.0f</code> with associated key value of <code>Color.yellow</code>
+* The intermediate key frame at the matching key time (any value between <code>0.0f</code> and <code>1.0f</code> based on the application requirement) with associated key value of <code>Color.green</code>
+* The ending key frame at key time <code>1.0f</code> with associated key value of <code>Color.black</code>
+
+Each key frame has two mandatory associated properties: '''key time''' and '''key value'''. Key times must form a strictly increasing sequence that starts at <code>0.0f</code> and ends at <code>1.0f</code>. Key values must have either an explicit or an implicit [[TimelineInterpolatingFields|property interpolator]]. This interpolator must be able to compute interpolated value for any successive pair of key values; this value should be of a class that can be passed to the public setter of the relevant property.
+
+== Simple example ==
+
+To put it all together, here is the definition of a key frame-driven timeline for the example above:
+
+<pre name="java">
+this.rolloverTimeline = new Timeline(this);
+
+KeyValues alphaValues = KeyValues.create(Color.yellow, 
+		Color.green, Color.black);
+KeyTimes alphaTimes = new KeyTimes(0.0f, 0.5f, 1.0f);
+this.rolloverTimeline.addPropertyToInterpolate("backgroundColor",
+		new KeyFrames(alphaValues, alphaTimes));
+</pre>
+
+Here, we specify that the <code>backgroundColor</code> starts at yellow, goes to green at half the '''duration''' of the timeline, and then goes to black at the end.
