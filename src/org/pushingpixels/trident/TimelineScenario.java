@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010 Trident Kirill Grouchnikov. All Rights Reserved.
+ * Copyright (c) 2005-2017 Trident Kirill Grouchnikov. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,329 +29,315 @@
  */
 package org.pushingpixels.trident;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.pushingpixels.trident.callback.TimelineScenarioCallback;
 
 public class TimelineScenario {
-	private Set<TimelineScenarioActor> waitingActors;
+    private Set<TimelineScenarioActor> waitingActors;
 
-	private Set<TimelineScenarioActor> runningActors;
+    private Set<TimelineScenarioActor> runningActors;
 
-	private Set<TimelineScenarioActor> doneActors;
+    private Set<TimelineScenarioActor> doneActors;
 
-	private Map<TimelineScenarioActor, Set<TimelineScenarioActor>> dependencies;
+    private Map<TimelineScenarioActor, Set<TimelineScenarioActor>> dependencies;
 
-	Chain callback;
+    Chain callback;
 
-	TimelineScenarioState state;
+    TimelineScenarioState state;
 
-	TimelineScenarioState statePriorToSuspension;
+    TimelineScenarioState statePriorToSuspension;
 
-	boolean isLooping;
+    boolean isLooping;
 
-	public enum TimelineScenarioState {
-		DONE, PLAYING, IDLE, SUSPENDED
-	}
+    public enum TimelineScenarioState {
+        DONE, PLAYING, IDLE, SUSPENDED
+    }
 
-	class Chain implements TimelineScenarioCallback {
-		private List<TimelineScenarioCallback> callbacks;
+    class Chain implements TimelineScenarioCallback {
+        private List<TimelineScenarioCallback> callbacks;
 
-		public Chain(TimelineScenarioCallback... callbacks) {
-			this.callbacks = new ArrayList<TimelineScenarioCallback>();
-			for (TimelineScenarioCallback callback : callbacks)
-				this.callbacks.add(callback);
-		}
+        public Chain(TimelineScenarioCallback... callbacks) {
+            this.callbacks = new ArrayList<TimelineScenarioCallback>();
+            for (TimelineScenarioCallback callback : callbacks)
+                this.callbacks.add(callback);
+        }
 
-		public void addCallback(TimelineScenarioCallback callback) {
-			this.callbacks.add(callback);
-		}
+        public void addCallback(TimelineScenarioCallback callback) {
+            this.callbacks.add(callback);
+        }
 
-		@Override
-		public void onTimelineScenarioDone() {
-			for (TimelineScenarioCallback callback : this.callbacks)
-				callback.onTimelineScenarioDone();
-		}
-	}
+        @Override
+        public void onTimelineScenarioDone() {
+            for (TimelineScenarioCallback callback : this.callbacks)
+                callback.onTimelineScenarioDone();
+        }
+    }
 
-	public static interface TimelineScenarioActor {
-		public boolean isDone();
+    public static interface TimelineScenarioActor {
+        public boolean isDone();
 
-		public boolean supportsReplay();
+        public boolean supportsReplay();
 
-		public void resetDoneFlag();
+        public void resetDoneFlag();
 
-		public void play();
-	}
+        public void play();
+    }
 
-	public TimelineScenario() {
-		this.waitingActors = new HashSet<TimelineScenarioActor>();
-		this.runningActors = new HashSet<TimelineScenarioActor>();
-		this.doneActors = new HashSet<TimelineScenarioActor>();
+    public TimelineScenario() {
+        this.waitingActors = new HashSet<TimelineScenarioActor>();
+        this.runningActors = new HashSet<TimelineScenarioActor>();
+        this.doneActors = new HashSet<TimelineScenarioActor>();
 
-		this.dependencies = new HashMap<TimelineScenarioActor, Set<TimelineScenarioActor>>();
-		this.callback = new Chain();
-		this.state = TimelineScenarioState.IDLE;
-	}
+        this.dependencies = new HashMap<TimelineScenarioActor, Set<TimelineScenarioActor>>();
+        this.callback = new Chain();
+        this.state = TimelineScenarioState.IDLE;
+    }
 
-	public void addScenarioActor(TimelineScenarioActor actor) {
-		if (actor.isDone()) {
-			throw new IllegalArgumentException("Already finished");
-		}
-		this.waitingActors.add(actor);
-	}
+    public void addScenarioActor(TimelineScenarioActor actor) {
+        if (actor.isDone()) {
+            throw new IllegalArgumentException("Already finished");
+        }
+        this.waitingActors.add(actor);
+    }
 
-	public void addCallback(TimelineScenarioCallback callback) {
-		if (this.doneActors.size() > 0) {
-			throw new IllegalArgumentException(
-					"Cannot change state of non-idle timeline scenario");
-		}
-		this.callback.addCallback(callback);
-	}
+    public void addCallback(TimelineScenarioCallback callback) {
+        if (this.doneActors.size() > 0) {
+            throw new IllegalArgumentException("Cannot change state of non-idle timeline scenario");
+        }
+        this.callback.addCallback(callback);
+    }
 
-	private void checkDependencyParam(TimelineScenarioActor actor) {
-		if (!waitingActors.contains(actor)) {
-			throw new IllegalArgumentException(
-					"Must be first added with addScenarioActor() API");
-		}
-	}
+    private void checkDependencyParam(TimelineScenarioActor actor) {
+        if (!waitingActors.contains(actor)) {
+            throw new IllegalArgumentException("Must be first added with addScenarioActor() API");
+        }
+    }
 
-	public void addDependency(TimelineScenarioActor actor,
-			TimelineScenarioActor... waitFor) {
-		// check params
-		this.checkDependencyParam(actor);
-		for (TimelineScenarioActor wait : waitFor) {
-			this.checkDependencyParam(wait);
-		}
+    public void addDependency(TimelineScenarioActor actor, TimelineScenarioActor... waitFor) {
+        // check params
+        this.checkDependencyParam(actor);
+        for (TimelineScenarioActor wait : waitFor) {
+            this.checkDependencyParam(wait);
+        }
 
-		if (!this.dependencies.containsKey(actor))
-			this.dependencies.put(actor, new HashSet<TimelineScenarioActor>());
-		this.dependencies.get(actor).addAll(Arrays.asList(waitFor));
-	}
+        if (!this.dependencies.containsKey(actor))
+            this.dependencies.put(actor, new HashSet<TimelineScenarioActor>());
+        this.dependencies.get(actor).addAll(Arrays.asList(waitFor));
+    }
 
-	private void checkDoneActors() {
-		synchronized (TimelineEngine.LOCK) {
-			for (Iterator<TimelineScenarioActor> itRunning = this.runningActors
-					.iterator(); itRunning.hasNext();) {
-				TimelineScenarioActor stillRunning = itRunning.next();
-				if (stillRunning.isDone()) {
-					itRunning.remove();
-					this.doneActors.add(stillRunning);
-				}
-			}
-		}
-	}
+    private void checkDoneActors() {
+        synchronized (TimelineEngine.LOCK) {
+            for (Iterator<TimelineScenarioActor> itRunning = this.runningActors
+                    .iterator(); itRunning.hasNext();) {
+                TimelineScenarioActor stillRunning = itRunning.next();
+                if (stillRunning.isDone()) {
+                    itRunning.remove();
+                    this.doneActors.add(stillRunning);
+                }
+            }
+        }
+    }
 
-	Set<TimelineScenarioActor> getReadyActors() {
-		synchronized (TimelineEngine.LOCK) {
-			if (this.state == TimelineScenarioState.SUSPENDED)
-				return new HashSet<TimelineScenarioActor>();
+    Set<TimelineScenarioActor> getReadyActors() {
+        synchronized (TimelineEngine.LOCK) {
+            if (this.state == TimelineScenarioState.SUSPENDED)
+                return new HashSet<TimelineScenarioActor>();
 
-			this.checkDoneActors();
+            this.checkDoneActors();
 
-			Set<TimelineScenarioActor> result = new HashSet<TimelineScenarioActor>();
-			for (Iterator<TimelineScenarioActor> itWaiting = this.waitingActors
-					.iterator(); itWaiting.hasNext();) {
-				TimelineScenarioActor waitingActor = itWaiting.next();
-				boolean canRun = true;
-				Set<TimelineScenarioActor> toWaitFor = this.dependencies
-						.get(waitingActor);
-				if (toWaitFor != null) {
-					for (TimelineScenarioActor actorToWaitFor : toWaitFor) {
-						if (!doneActors.contains(actorToWaitFor)) {
-							canRun = false;
-							break;
-						}
-					}
-				}
-				if (canRun) {
-					runningActors.add(waitingActor);
-					itWaiting.remove();
-					result.add(waitingActor);
-				}
-			}
+            Set<TimelineScenarioActor> result = new HashSet<TimelineScenarioActor>();
+            for (Iterator<TimelineScenarioActor> itWaiting = this.waitingActors
+                    .iterator(); itWaiting.hasNext();) {
+                TimelineScenarioActor waitingActor = itWaiting.next();
+                boolean canRun = true;
+                Set<TimelineScenarioActor> toWaitFor = this.dependencies.get(waitingActor);
+                if (toWaitFor != null) {
+                    for (TimelineScenarioActor actorToWaitFor : toWaitFor) {
+                        if (!doneActors.contains(actorToWaitFor)) {
+                            canRun = false;
+                            break;
+                        }
+                    }
+                }
+                if (canRun) {
+                    runningActors.add(waitingActor);
+                    itWaiting.remove();
+                    result.add(waitingActor);
+                }
+            }
 
-			if (this.waitingActors.isEmpty() && this.runningActors.isEmpty()) {
-				if (!this.isLooping) {
-					this.state = TimelineScenarioState.DONE;
-				} else {
-					for (TimelineScenarioActor done : this.doneActors)
-						done.resetDoneFlag();
-					this.waitingActors.addAll(this.doneActors);
-					this.doneActors.clear();
-				}
-			}
+            if (this.waitingActors.isEmpty() && this.runningActors.isEmpty()) {
+                if (!this.isLooping) {
+                    this.state = TimelineScenarioState.DONE;
+                } else {
+                    for (TimelineScenarioActor done : this.doneActors)
+                        done.resetDoneFlag();
+                    this.waitingActors.addAll(this.doneActors);
+                    this.doneActors.clear();
+                }
+            }
 
-			return result;
-		}
-	}
+            return result;
+        }
+    }
 
-	public void cancel() {
-		synchronized (TimelineEngine.LOCK) {
-			TimelineScenarioState oldState = this.state;
-			if (oldState != TimelineScenarioState.PLAYING)
-				return;
-			this.state = TimelineScenarioState.DONE;
+    public void cancel() {
+        synchronized (TimelineEngine.LOCK) {
+            TimelineScenarioState oldState = this.state;
+            if (oldState != TimelineScenarioState.PLAYING)
+                return;
+            this.state = TimelineScenarioState.DONE;
 
-			for (TimelineScenarioActor waiting : this.waitingActors) {
-				if (waiting instanceof Timeline) {
-					((Timeline) waiting).cancel();
-				}
-			}
-			for (TimelineScenarioActor running : this.runningActors) {
-				if (running instanceof Timeline) {
-					((Timeline) running).cancel();
-				}
-			}
-		}
-	}
+            for (TimelineScenarioActor waiting : this.waitingActors) {
+                if (waiting instanceof Timeline) {
+                    ((Timeline) waiting).cancel();
+                }
+            }
+            for (TimelineScenarioActor running : this.runningActors) {
+                if (running instanceof Timeline) {
+                    ((Timeline) running).cancel();
+                }
+            }
+        }
+    }
 
-	public void suspend() {
-		synchronized (TimelineEngine.LOCK) {
-			TimelineScenarioState oldState = this.state;
-			if (oldState != TimelineScenarioState.PLAYING)
-				return;
-			this.statePriorToSuspension = oldState;
-			this.state = TimelineScenarioState.SUSPENDED;
+    public void suspend() {
+        synchronized (TimelineEngine.LOCK) {
+            TimelineScenarioState oldState = this.state;
+            if (oldState != TimelineScenarioState.PLAYING)
+                return;
+            this.statePriorToSuspension = oldState;
+            this.state = TimelineScenarioState.SUSPENDED;
 
-			for (TimelineScenarioActor running : this.runningActors) {
-				if (running instanceof Timeline) {
-					((Timeline) running).suspend();
-				}
-			}
-		}
-	}
+            for (TimelineScenarioActor running : this.runningActors) {
+                if (running instanceof Timeline) {
+                    ((Timeline) running).suspend();
+                }
+            }
+        }
+    }
 
-	public void resume() {
-		synchronized (TimelineEngine.LOCK) {
-			TimelineScenarioState oldState = this.state;
-			if (oldState != TimelineScenarioState.SUSPENDED)
-				return;
-			this.state = this.statePriorToSuspension;
+    public void resume() {
+        synchronized (TimelineEngine.LOCK) {
+            TimelineScenarioState oldState = this.state;
+            if (oldState != TimelineScenarioState.SUSPENDED)
+                return;
+            this.state = this.statePriorToSuspension;
 
-			for (TimelineScenarioActor running : this.runningActors) {
-				if (running instanceof Timeline) {
-					((Timeline) running).resume();
-				}
-			}
-		}
-	}
+            for (TimelineScenarioActor running : this.runningActors) {
+                if (running instanceof Timeline) {
+                    ((Timeline) running).resume();
+                }
+            }
+        }
+    }
 
-	public void play() {
-		this.isLooping = false;
-		this.state = TimelineScenarioState.PLAYING;
+    public void play() {
+        this.isLooping = false;
+        this.state = TimelineScenarioState.PLAYING;
 
-		TimelineEngine.getInstance().runTimelineScenario(this, new Runnable() {
-			@Override
-			public void run() {
-				TimelineEngine.getInstance()
-						.playScenario(TimelineScenario.this);
-			}
-		});
-	}
+        TimelineEngine.getInstance().runTimelineScenario(this,
+                () -> TimelineEngine.getInstance().playScenario(TimelineScenario.this));
+    }
 
-	public void playLoop() {
-		for (TimelineScenarioActor actor : this.waitingActors) {
-			if (!actor.supportsReplay())
-				throw new UnsupportedOperationException(
-						"Can't loop scenario with actor(s) that don't support replay");
-		}
-		this.isLooping = true;
-		this.state = TimelineScenarioState.PLAYING;
-		TimelineEngine.getInstance().runTimelineScenario(this, new Runnable() {
-			@Override
-			public void run() {
-				TimelineEngine.getInstance()
-						.playScenario(TimelineScenario.this);
-			}
-		});
-	}
+    public void playLoop() {
+        for (TimelineScenarioActor actor : this.waitingActors) {
+            if (!actor.supportsReplay())
+                throw new UnsupportedOperationException(
+                        "Can't loop scenario with actor(s) that don't support replay");
+        }
+        this.isLooping = true;
+        this.state = TimelineScenarioState.PLAYING;
+        TimelineEngine.getInstance().runTimelineScenario(this,
+                () -> TimelineEngine.getInstance().playScenario(TimelineScenario.this));
+    }
 
-	public static class Parallel extends TimelineScenario {
-		@Override
-		public void addDependency(TimelineScenarioActor actor,
-				TimelineScenarioActor... waitFor) {
-			throw new UnsupportedOperationException(
-					"Explicit dependencies not supported");
-		}
-	}
+    public static class Parallel extends TimelineScenario {
+        @Override
+        public void addDependency(TimelineScenarioActor actor, TimelineScenarioActor... waitFor) {
+            throw new UnsupportedOperationException("Explicit dependencies not supported");
+        }
+    }
 
-	public static class Sequence extends TimelineScenario {
-		private TimelineScenarioActor lastActor;
+    public static class Sequence extends TimelineScenario {
+        private TimelineScenarioActor lastActor;
 
-		@Override
-		public void addDependency(TimelineScenarioActor actor,
-				TimelineScenarioActor... waitFor) {
-			throw new UnsupportedOperationException(
-					"Explicit dependencies not supported");
-		}
+        @Override
+        public void addDependency(TimelineScenarioActor actor, TimelineScenarioActor... waitFor) {
+            throw new UnsupportedOperationException("Explicit dependencies not supported");
+        }
 
-		@Override
-		public void addScenarioActor(TimelineScenarioActor actor) {
-			super.addScenarioActor(actor);
-			if (this.lastActor != null) {
-				super.addDependency(actor, this.lastActor);
-			}
-			this.lastActor = actor;
-		}
-	}
+        @Override
+        public void addScenarioActor(TimelineScenarioActor actor) {
+            super.addScenarioActor(actor);
+            if (this.lastActor != null) {
+                super.addDependency(actor, this.lastActor);
+            }
+            this.lastActor = actor;
+        }
+    }
 
-	public static class RendezvousSequence extends TimelineScenario {
-		private Set<TimelineScenarioActor> addedSinceLastRendezvous;
+    public static class RendezvousSequence extends TimelineScenario {
+        private Set<TimelineScenarioActor> addedSinceLastRendezvous;
 
-		private Set<TimelineScenarioActor> addedPriorToLastRendezvous;
+        private Set<TimelineScenarioActor> addedPriorToLastRendezvous;
 
-		public RendezvousSequence() {
-			this.addedSinceLastRendezvous = new HashSet<TimelineScenarioActor>();
-			this.addedPriorToLastRendezvous = new HashSet<TimelineScenarioActor>();
-		}
+        public RendezvousSequence() {
+            this.addedSinceLastRendezvous = new HashSet<TimelineScenarioActor>();
+            this.addedPriorToLastRendezvous = new HashSet<TimelineScenarioActor>();
+        }
 
-		@Override
-		public void addDependency(TimelineScenarioActor actor,
-				TimelineScenarioActor... waitFor) {
-			throw new UnsupportedOperationException(
-					"Explicit dependencies not supported");
-		}
+        @Override
+        public void addDependency(TimelineScenarioActor actor, TimelineScenarioActor... waitFor) {
+            throw new UnsupportedOperationException("Explicit dependencies not supported");
+        }
 
-		@Override
-		public void addScenarioActor(TimelineScenarioActor actor) {
-			super.addScenarioActor(actor);
-			this.addedSinceLastRendezvous.add(actor);
-		}
+        @Override
+        public void addScenarioActor(TimelineScenarioActor actor) {
+            super.addScenarioActor(actor);
+            this.addedSinceLastRendezvous.add(actor);
+        }
 
-		public void rendezvous() {
-			// make all actors added since last rendezvous to wait for
-			// all actors added prior to last rendezvous
-			if (this.addedPriorToLastRendezvous.size() > 0) {
-				for (TimelineScenarioActor sinceLast : this.addedSinceLastRendezvous) {
-					for (TimelineScenarioActor beforeLast : this.addedPriorToLastRendezvous) {
-						super.addDependency(sinceLast, beforeLast);
-					}
-				}
-			}
+        public void rendezvous() {
+            // make all actors added since last rendezvous to wait for
+            // all actors added prior to last rendezvous
+            if (this.addedPriorToLastRendezvous.size() > 0) {
+                for (TimelineScenarioActor sinceLast : this.addedSinceLastRendezvous) {
+                    for (TimelineScenarioActor beforeLast : this.addedPriorToLastRendezvous) {
+                        super.addDependency(sinceLast, beforeLast);
+                    }
+                }
+            }
 
-			this.addedPriorToLastRendezvous.clear();
-			this.addedPriorToLastRendezvous
-					.addAll(this.addedSinceLastRendezvous);
-			this.addedSinceLastRendezvous.clear();
-		}
+            this.addedPriorToLastRendezvous.clear();
+            this.addedPriorToLastRendezvous.addAll(this.addedSinceLastRendezvous);
+            this.addedSinceLastRendezvous.clear();
+        }
 
-		@Override
-		public void play() {
-			// add last implicit rendezvous
-			this.rendezvous();
-			super.play();
-		}
+        @Override
+        public void play() {
+            // add last implicit rendezvous
+            this.rendezvous();
+            super.play();
+        }
 
-		@Override
-		public void playLoop() {
-			// add last implicit rendezvous
-			this.rendezvous();
-			super.playLoop();
-		}
-	}
+        @Override
+        public void playLoop() {
+            // add last implicit rendezvous
+            this.rendezvous();
+            super.playLoop();
+        }
+    }
 
-	public final TimelineScenarioState getState() {
-		return this.state;
-	}
+    public final TimelineScenarioState getState() {
+        return this.state;
+    }
 }

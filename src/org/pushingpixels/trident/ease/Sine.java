@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010 Trident Kirill Grouchnikov. All Rights Reserved.
+ * Copyright (c) 2005-2017 Trident Kirill Grouchnikov. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -30,9 +30,9 @@
 package org.pushingpixels.trident.ease;
 
 public class Sine implements TimelineEase {
-	@Override
-	public float map(float durationFraction) {
-		return (float) Math.sin(durationFraction * Math.PI / 2.0);
-	}
+    @Override
+    public float map(float durationFraction) {
+        return (float) Math.sin(durationFraction * Math.PI / 2.0);
+    }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010 Trident Kirill Grouchnikov. All Rights Reserved.
+ * Copyright (c) 2005-2017 Trident Kirill Grouchnikov. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted provided that the following conditions are met:
@@ -35,61 +35,55 @@ import java.awt.Rectangle;
 import org.pushingpixels.trident.Timeline;
 
 public class SwingRepaintTimeline extends Timeline {
-	private SwingRepaintCallback repaintCallback;
+    private SwingRepaintCallback repaintCallback;
 
-	public SwingRepaintTimeline(Component mainTimelineComp) {
-		this(mainTimelineComp, null);
-	}
+    public SwingRepaintTimeline(Component mainTimelineComp) {
+        this(mainTimelineComp, null);
+    }
 
-	public SwingRepaintTimeline(Component mainTimelineComp, Rectangle toRepaint) {
-		super(mainTimelineComp);
-		this.repaintCallback = new SwingRepaintCallback(mainTimelineComp,
-				toRepaint);
-		this.addCallback(this.repaintCallback);
-	}
+    public SwingRepaintTimeline(Component mainTimelineComp, Rectangle toRepaint) {
+        super(mainTimelineComp);
+        this.repaintCallback = new SwingRepaintCallback(mainTimelineComp, toRepaint);
+        this.addCallback(this.repaintCallback);
+    }
 
-	public void forceRepaintOnNextPulse() {
-		this.repaintCallback.forceRepaintOnNextPulse();
-	}
+    public void forceRepaintOnNextPulse() {
+        this.repaintCallback.forceRepaintOnNextPulse();
+    }
 
-	public void setAutoRepaintMode(boolean autoRepaintMode) {
-		this.repaintCallback.setAutoRepaintMode(autoRepaintMode);
-	}
+    public void setAutoRepaintMode(boolean autoRepaintMode) {
+        this.repaintCallback.setAutoRepaintMode(autoRepaintMode);
+    }
 
-	public void setRepaintRectangle(Rectangle rect) {
-		this.repaintCallback.setRepaintRectangle(rect);
-	}
+    public void setRepaintRectangle(Rectangle rect) {
+        this.repaintCallback.setRepaintRectangle(rect);
+    }
 
-	@Override
-	public void play() {
-		throw new UnsupportedOperationException(
-				"Only infinite looping is supported");
-	}
+    @Override
+    public void play() {
+        throw new UnsupportedOperationException("Only infinite looping is supported");
+    }
 
-	@Override
-	public void playReverse() {
-		throw new UnsupportedOperationException(
-				"Only infinite looping is supported");
-	}
+    @Override
+    public void playReverse() {
+        throw new UnsupportedOperationException("Only infinite looping is supported");
+    }
 
-	@Override
-	public void replay() {
-		throw new UnsupportedOperationException(
-				"Only infinite looping is supported");
-	}
+    @Override
+    public void replay() {
+        throw new UnsupportedOperationException("Only infinite looping is supported");
+    }
 
-	@Override
-	public void replayReverse() {
-		throw new UnsupportedOperationException(
-				"Only infinite looping is supported");
-	}
+    @Override
+    public void replayReverse() {
+        throw new UnsupportedOperationException("Only infinite looping is supported");
+    }
 
-	@Override
-	public void playLoop(int loopCount, RepeatBehavior repeatBehavior) {
-		if (loopCount >= 0) {
-			throw new UnsupportedOperationException(
-					"Only infinite looping is supported");
-		}
-		super.playLoop(loopCount, repeatBehavior);
-	}
+    @Override
+    public void playLoop(int loopCount, RepeatBehavior repeatBehavior) {
+        if (loopCount >= 0) {
+            throw new UnsupportedOperationException("Only infinite looping is supported");
+        }
+        super.playLoop(loopCount, repeatBehavior);
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010 Trident Kirill Grouchnikov. All Rights Reserved.
+ * Copyright (c) 2005-2017 Trident Kirill Grouchnikov. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted provided that the following conditions are met:
@@ -29,37 +29,39 @@
  */
 package org.pushingpixels.trident;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.pushingpixels.trident.TimelineScenario.TimelineScenarioActor;
 
-public abstract class TimelineRunnable implements Runnable,
-		TimelineScenarioActor {
-	private static ExecutorService service = new ThreadPoolExecutor(0,
-			Integer.MAX_VALUE, 10L, TimeUnit.SECONDS,
-			new SynchronousQueue<Runnable>());
+public abstract class TimelineRunnable implements Runnable, TimelineScenarioActor {
+    private static ExecutorService service = new ThreadPoolExecutor(0, Integer.MAX_VALUE, 10L,
+            TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
 
-	private Future<?> future;
+    private Future<?> future;
 
-	@Override
-	public void play() {
-		this.future = service.submit(this);
-	}
+    @Override
+    public void play() {
+        this.future = service.submit(this);
+    }
 
-	@Override
-	public boolean isDone() {
-		if (this.future == null)
-			return false;
-		return this.future.isDone();
-	}
+    @Override
+    public boolean isDone() {
+        if (this.future == null)
+            return false;
+        return this.future.isDone();
+    }
 
-	@Override
-	public boolean supportsReplay() {
-		return false;
-	}
+    @Override
+    public boolean supportsReplay() {
+        return false;
+    }
 
-	@Override
-	public void resetDoneFlag() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void resetDoneFlag() {
+        throw new UnsupportedOperationException();
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010 Trident Kirill Grouchnikov. All Rights Reserved.
+ * Copyright (c) 2005-2017 Trident Kirill Grouchnikov. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted provided that the following conditions are met:
@@ -39,43 +39,42 @@ import org.pushingpixels.trident.Timeline.TimelineState;
  * @author Kirill Grouchnikov
  */
 public interface TimelineCallback {
-	/**
-	 * Indicates that the timeline state has changed.
-	 * 
-	 * @param oldState
-	 *            The old timeline state.
-	 * @param newState
-	 *            The new timeline state.
-	 * @param durationFraction
-	 *            The current timeline duration fraction.Is guaranteed to be in
-	 *            0.0-1.0 range. The rate of change of this value is linear, and
-	 *            the value is proportional to
-	 *            {@link Timeline#setDuration(long)}.
-	 * @param timelinePosition
-	 *            The current timeline position. Is guaranteed to be in 0.0-1.0
-	 *            range. The rate of change of this value is not necessarily
-	 *            linear and is affected by the
-	 *            {@link Timeline#setEase(org.pushingpixels.trident.ease.TimelineEase)}
-	 *            .
-	 */
-	public void onTimelineStateChanged(TimelineState oldState,
-			TimelineState newState, float durationFraction,
-			float timelinePosition);
+    /**
+     * Indicates that the timeline state has changed.
+     * 
+     * @param oldState
+     *            The old timeline state.
+     * @param newState
+     *            The new timeline state.
+     * @param durationFraction
+     *            The current timeline duration fraction.Is guaranteed to be in
+     *            0.0-1.0 range. The rate of change of this value is linear, and
+     *            the value is proportional to
+     *            {@link Timeline#setDuration(long)}.
+     * @param timelinePosition
+     *            The current timeline position. Is guaranteed to be in 0.0-1.0
+     *            range. The rate of change of this value is not necessarily
+     *            linear and is affected by the
+     *            {@link Timeline#setEase(org.pushingpixels.trident.ease.TimelineEase)}
+     *            .
+     */
+    public void onTimelineStateChanged(TimelineState oldState, TimelineState newState,
+            float durationFraction, float timelinePosition);
 
-	/**
-	 * Indicates that the timeline pulse has happened.
-	 * 
-	 * @param durationFraction
-	 *            The current timeline duration fraction.Is guaranteed to be in
-	 *            0.0-1.0 range. The rate of change of this value is linear, and
-	 *            the value is proportional to
-	 *            {@link Timeline#setDuration(long)}.
-	 * @param timelinePosition
-	 *            The current timeline position. Is guaranteed to be in 0.0-1.0
-	 *            range. The rate of change of this value is not necessarily
-	 *            linear and is affected by the
-	 *            {@link Timeline#setEase(org.pushingpixels.trident.ease.TimelineEase)}
-	 *            .
-	 */
-	public void onTimelinePulse(float durationFraction, float timelinePosition);
+    /**
+     * Indicates that the timeline pulse has happened.
+     * 
+     * @param durationFraction
+     *            The current timeline duration fraction.Is guaranteed to be in
+     *            0.0-1.0 range. The rate of change of this value is linear, and
+     *            the value is proportional to
+     *            {@link Timeline#setDuration(long)}.
+     * @param timelinePosition
+     *            The current timeline position. Is guaranteed to be in 0.0-1.0
+     *            range. The rate of change of this value is not necessarily
+     *            linear and is affected by the
+     *            {@link Timeline#setEase(org.pushingpixels.trident.ease.TimelineEase)}
+     *            .
+     */
+    public void onTimelinePulse(float durationFraction, float timelinePosition);
 }

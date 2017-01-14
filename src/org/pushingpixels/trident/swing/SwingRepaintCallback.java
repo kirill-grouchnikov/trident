@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010 Trident Kirill Grouchnikov. All Rights Reserved.
+ * Copyright (c) 2005-2017 Trident Kirill Grouchnikov. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -37,75 +37,72 @@ import org.pushingpixels.trident.Timeline.TimelineState;
 import org.pushingpixels.trident.callback.TimelineCallbackAdapter;
 
 public class SwingRepaintCallback extends TimelineCallbackAdapter {
-	private Component comp;
+    private Component comp;
 
-	private Rectangle rect;
+    private Rectangle rect;
 
-	private AtomicBoolean repaintGuard;
+    private AtomicBoolean repaintGuard;
 
-	public SwingRepaintCallback(Component comp) {
-		this(comp, null);
-	}
+    public SwingRepaintCallback(Component comp) {
+        this(comp, null);
+    }
 
-	public SwingRepaintCallback(Component comp, Rectangle rect) {
-		if (comp == null) {
-			throw new NullPointerException("Component must be non-null");
-		}
-		this.comp = comp;
-		if (rect != null) {
-			this.rect = new Rectangle(rect);
-		}
-	}
+    public SwingRepaintCallback(Component comp, Rectangle rect) {
+        if (comp == null) {
+            throw new NullPointerException("Component must be non-null");
+        }
+        this.comp = comp;
+        if (rect != null) {
+            this.rect = new Rectangle(rect);
+        }
+    }
 
-	public synchronized void setAutoRepaintMode(boolean autoRepaintMode) {
-		if (autoRepaintMode) {
-			this.repaintGuard = null;
-		} else {
-			this.repaintGuard = new AtomicBoolean(false);
-		}
-	}
+    public synchronized void setAutoRepaintMode(boolean autoRepaintMode) {
+        if (autoRepaintMode) {
+            this.repaintGuard = null;
+        } else {
+            this.repaintGuard = new AtomicBoolean(false);
+        }
+    }
 
-	public synchronized void forceRepaintOnNextPulse() {
-		if (this.repaintGuard == null) {
-			throw new IllegalArgumentException(
-					"This method cannot be called on auto-repaint callback");
-		}
-		this.repaintGuard.set(true);
-	}
+    public synchronized void forceRepaintOnNextPulse() {
+        if (this.repaintGuard == null) {
+            throw new IllegalArgumentException(
+                    "This method cannot be called on auto-repaint callback");
+        }
+        this.repaintGuard.set(true);
+    }
 
-	public synchronized void setRepaintRectangle(Rectangle rect) {
-		if (rect == null) {
-			this.rect = null;
-		} else {
-			this.rect = new Rectangle(rect);
-		}
-	}
+    public synchronized void setRepaintRectangle(Rectangle rect) {
+        if (rect == null) {
+            this.rect = null;
+        } else {
+            this.rect = new Rectangle(rect);
+        }
+    }
 
-	@Override
-	public synchronized void onTimelinePulse(float durationFraction,
-			float timelinePosition) {
-		repaintAsNecessary();
-	}
+    @Override
+    public synchronized void onTimelinePulse(float durationFraction, float timelinePosition) {
+        repaintAsNecessary();
+    }
 
-	@Override
-	public synchronized void onTimelineStateChanged(TimelineState oldState,
-			TimelineState newState, float durationFraction,
-			float timelinePosition) {
-		repaintAsNecessary();
-	}
+    @Override
+    public synchronized void onTimelineStateChanged(TimelineState oldState, TimelineState newState,
+            float durationFraction, float timelinePosition) {
+        repaintAsNecessary();
+    }
 
-	private void repaintAsNecessary() {
-		if (this.repaintGuard != null) {
-			if (!this.repaintGuard.compareAndSet(true, false)) {
-				// no need to repaint
-				return;
-			}
-		}
+    private void repaintAsNecessary() {
+        if (this.repaintGuard != null) {
+            if (!this.repaintGuard.compareAndSet(true, false)) {
+                // no need to repaint
+                return;
+            }
+        }
 
-		if (this.rect == null)
-			this.comp.repaint();
-		else
-			this.comp.repaint(this.rect.x, this.rect.y, this.rect.width,
-					this.rect.height);
-	}
+        if (this.rect == null)
+            this.comp.repaint();
+        else
+            this.comp.repaint(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
+    }
 }

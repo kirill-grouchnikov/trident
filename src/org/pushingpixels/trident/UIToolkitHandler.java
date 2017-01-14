@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010 Trident Kirill Grouchnikov. All Rights Reserved.
+ * Copyright (c) 2005-2017 Trident Kirill Grouchnikov. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted provided that the following conditions are met:
@@ -30,9 +30,9 @@
 package org.pushingpixels.trident;
 
 public interface UIToolkitHandler {
-	public boolean isHandlerFor(Object mainTimelineObject);
+    public boolean isHandlerFor(Object mainTimelineObject);
 
-	public boolean isInReadyState(Object mainTimelineObject);
+    public boolean isInReadyState(Object mainTimelineObject);
 
-	public void runOnUIThread(Object mainTimelineObject, Runnable runnable);
+    public void runOnUIThread(Object mainTimelineObject, Runnable runnable);
 }

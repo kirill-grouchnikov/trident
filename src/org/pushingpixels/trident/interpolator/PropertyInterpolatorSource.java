@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010 Trident Kirill Grouchnikov. All Rights Reserved.
+ * Copyright (c) 2005-2017 Trident Kirill Grouchnikov. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted provided that the following conditions are met:
@@ -32,5 +32,5 @@ package org.pushingpixels.trident.interpolator;
 import java.util.Set;
 
 public interface PropertyInterpolatorSource {
-	public Set<PropertyInterpolator> getPropertyInterpolators();
+    public Set<PropertyInterpolator> getPropertyInterpolators();
 }

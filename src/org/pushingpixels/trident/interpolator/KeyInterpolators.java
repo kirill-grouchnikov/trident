@@ -41,9 +41,9 @@ import org.pushingpixels.trident.ease.TimelineEase;
  * @author Chet
  */
 class KeyInterpolators {
-    
+
     private ArrayList<TimelineEase> interpolators = new ArrayList<TimelineEase>();
-    
+
     /**
      * Creates a new instance of KeyInterpolators
      */
@@ -62,9 +62,9 @@ class KeyInterpolators {
             }
         }
     }
-    
+
     float interpolate(int interval, float fraction) {
         return interpolators.get(interval).map(fraction);
     }
-    
+
 }

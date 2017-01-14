@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010 Trident Kirill Grouchnikov. All Rights Reserved.
+ * Copyright (c) 2005-2017 Trident Kirill Grouchnikov. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted provided that the following conditions are met:
@@ -29,74 +29,71 @@
  */
 package org.pushingpixels.trident.interpolator;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class CorePropertyInterpolators implements PropertyInterpolatorSource {
-	private Set<PropertyInterpolator> interpolators;
+    private Set<PropertyInterpolator> interpolators;
 
-	public CorePropertyInterpolators() {
-		this.interpolators = new HashSet<PropertyInterpolator>();
-		this.interpolators.add(new IntegerPropertyInterpolator());
-		this.interpolators.add(new FloatPropertyInterpolator());
-		this.interpolators.add(new DoublePropertyInterpolator());
-		this.interpolators.add(new LongPropertyInterpolator());
-	}
+    public CorePropertyInterpolators() {
+        this.interpolators = new HashSet<PropertyInterpolator>();
+        this.interpolators.add(new IntegerPropertyInterpolator());
+        this.interpolators.add(new FloatPropertyInterpolator());
+        this.interpolators.add(new DoublePropertyInterpolator());
+        this.interpolators.add(new LongPropertyInterpolator());
+    }
 
-	@Override
-	public Set<PropertyInterpolator> getPropertyInterpolators() {
-		return Collections.unmodifiableSet(this.interpolators);
-	}
+    @Override
+    public Set<PropertyInterpolator> getPropertyInterpolators() {
+        return Collections.unmodifiableSet(this.interpolators);
+    }
 
-	private static class FloatPropertyInterpolator implements
-			PropertyInterpolator<Float> {
-		@Override
-		public Class getBasePropertyClass() {
-			return Float.class;
-		}
+    private static class FloatPropertyInterpolator implements PropertyInterpolator<Float> {
+        @Override
+        public Class getBasePropertyClass() {
+            return Float.class;
+        }
 
-		@Override
-		public Float interpolate(Float from, Float to, float timelinePosition) {
-			return from + (to - from) * timelinePosition;
-		}
-	}
+        @Override
+        public Float interpolate(Float from, Float to, float timelinePosition) {
+            return from + (to - from) * timelinePosition;
+        }
+    }
 
-	private static class DoublePropertyInterpolator implements
-			PropertyInterpolator<Double> {
-		@Override
-		public Class getBasePropertyClass() {
-			return Double.class;
-		}
+    private static class DoublePropertyInterpolator implements PropertyInterpolator<Double> {
+        @Override
+        public Class getBasePropertyClass() {
+            return Double.class;
+        }
 
-		@Override
-		public Double interpolate(Double from, Double to, float timelinePosition) {
-			return from + (to - from) * timelinePosition;
-		}
-	}
+        @Override
+        public Double interpolate(Double from, Double to, float timelinePosition) {
+            return from + (to - from) * timelinePosition;
+        }
+    }
 
-	private static class IntegerPropertyInterpolator implements
-			PropertyInterpolator<Integer> {
-		@Override
-		public Class getBasePropertyClass() {
-			return Integer.class;
-		}
+    private static class IntegerPropertyInterpolator implements PropertyInterpolator<Integer> {
+        @Override
+        public Class getBasePropertyClass() {
+            return Integer.class;
+        }
 
-		@Override
-		public Integer interpolate(Integer from, Integer to,
-				float timelinePosition) {
-			return (int) (from + (to - from) * timelinePosition);
-		}
-	}
+        @Override
+        public Integer interpolate(Integer from, Integer to, float timelinePosition) {
+            return (int) (from + (to - from) * timelinePosition);
+        }
+    }
 
-	private static class LongPropertyInterpolator implements
-			PropertyInterpolator<Long> {
-		@Override
-		public Class getBasePropertyClass() {
-			return Long.class;
-		}
+    private static class LongPropertyInterpolator implements PropertyInterpolator<Long> {
+        @Override
+        public Class getBasePropertyClass() {
+            return Long.class;
+        }
 
-		@Override
-		public Long interpolate(Long from, Long to, float timelinePosition) {
-			return (long) (from + (to - from) * timelinePosition);
-		}
-	}
+        @Override
+        public Long interpolate(Long from, Long to, float timelinePosition) {
+            return (long) (from + (to - from) * timelinePosition);
+        }
+    }
 }

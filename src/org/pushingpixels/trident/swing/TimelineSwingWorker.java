@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010 Trident Kirill Grouchnikov. All Rights Reserved.
+ * Copyright (c) 2005-2017 Trident Kirill Grouchnikov. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted provided that the following conditions are met:
@@ -34,19 +34,19 @@ import javax.swing.SwingWorker;
 import org.pushingpixels.trident.TimelineScenario;
 
 public abstract class TimelineSwingWorker<T, V> extends SwingWorker<T, V>
-		implements TimelineScenario.TimelineScenarioActor {
-	@Override
-	public void play() {
-		this.execute();
-	}
+        implements TimelineScenario.TimelineScenarioActor {
+    @Override
+    public void play() {
+        this.execute();
+    }
 
-	@Override
-	public boolean supportsReplay() {
-		return false;
-	}
+    @Override
+    public boolean supportsReplay() {
+        return false;
+    }
 
-	@Override
-	public void resetDoneFlag() {
-		throw new UnsupportedOperationException();
-	}
+    @Override
+    public void resetDoneFlag() {
+        throw new UnsupportedOperationException();
+    }
 }

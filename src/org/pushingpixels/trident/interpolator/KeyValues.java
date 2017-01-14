@@ -31,10 +31,12 @@
 
 package org.pushingpixels.trident.interpolator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-import org.pushingpixels.trident.TridentConfig;
 import org.pushingpixels.trident.TimelinePropertyBuilder.PropertySetter;
+import org.pushingpixels.trident.TridentConfig;
 
 /**
  * Stores a list of values that correspond to the times in a {@link KeyTimes}
@@ -59,127 +61,125 @@ import org.pushingpixels.trident.TimelinePropertyBuilder.PropertySetter;
  */
 public class KeyValues<T> {
 
-	private final List<T> values = new ArrayList<T>();
-	private final PropertyInterpolator<T> evaluator;
-	private final Class<?> type;
-	private T startValue;
+    private final List<T> values = new ArrayList<T>();
+    private final PropertyInterpolator<T> evaluator;
+    private final Class<?> type;
+    private T startValue;
 
-	/**
-	 * Constructs a KeyValues object from one or more values. The internal
-	 * Evaluator is automatically determined by the type of the parameters.
-	 * 
-	 * @param params
-	 *            the values to interpolate between. If there is only one
-	 *            parameter, this is assumed to be a "to" animation where the
-	 *            first value is dynamically determined at runtime when the
-	 *            animation is started.
-	 * @throws IllegalArgumentException
-	 *             if an {@link Evaluator} cannot be found that can interpolate
-	 *             between the value types supplied
-	 */
-	public static <T> KeyValues<T> create(T... params) {
-		return new KeyValues(params);
-	}
+    /**
+     * Constructs a KeyValues object from one or more values. The internal
+     * Evaluator is automatically determined by the type of the parameters.
+     * 
+     * @param params
+     *            the values to interpolate between. If there is only one
+     *            parameter, this is assumed to be a "to" animation where the
+     *            first value is dynamically determined at runtime when the
+     *            animation is started.
+     * @throws IllegalArgumentException
+     *             if an {@link Evaluator} cannot be found that can interpolate
+     *             between the value types supplied
+     */
+    public static <T> KeyValues<T> create(T... params) {
+        return new KeyValues(params);
+    }
 
-	/**
-	 * Constructs a KeyValues object from a Evaluator and one or more values.
-	 * 
-	 * @param params
-	 *            the values to interpolate between. If there is only one
-	 *            parameter, this is assumed to be a "to" animation where the
-	 *            first value is dynamically determined at runtime when the
-	 *            animation is started.
-	 * @throws IllegalArgumentException
-	 *             if params does not have at least one value.
-	 */
-	public static <T> KeyValues<T> create(PropertyInterpolator evaluator,
-			T... params) {
-		return new KeyValues(evaluator, params);
-	}
+    /**
+     * Constructs a KeyValues object from a Evaluator and one or more values.
+     * 
+     * @param params
+     *            the values to interpolate between. If there is only one
+     *            parameter, this is assumed to be a "to" animation where the
+     *            first value is dynamically determined at runtime when the
+     *            animation is started.
+     * @throws IllegalArgumentException
+     *             if params does not have at least one value.
+     */
+    public static <T> KeyValues<T> create(PropertyInterpolator evaluator, T... params) {
+        return new KeyValues(evaluator, params);
+    }
 
-	/**
-	 * Private constructor, called by factory method
-	 */
-	private KeyValues(T... params) {
-		this(TridentConfig.getInstance().getPropertyInterpolator(params), params);
-	}
+    /**
+     * Private constructor, called by factory method
+     */
+    private KeyValues(T... params) {
+        this(TridentConfig.getInstance().getPropertyInterpolator(params), params);
+    }
 
-	/**
-	 * Private constructor, called by factory method
-	 */
-	private KeyValues(PropertyInterpolator evaluator, T... params) {
-		if (params == null) {
-			throw new IllegalArgumentException("params array cannot be null");
-		} else if (params.length == 0) {
-			throw new IllegalArgumentException(
-					"params array must have at least one element");
-		}
-		if (params.length == 1) {
-			// this is a "to" animation; set first element to null
-			values.add(null);
-		}
-		Collections.addAll(values, params);
-		this.type = params.getClass().getComponentType();
-		this.evaluator = evaluator;
-	}
+    /**
+     * Private constructor, called by factory method
+     */
+    private KeyValues(PropertyInterpolator evaluator, T... params) {
+        if (params == null) {
+            throw new IllegalArgumentException("params array cannot be null");
+        } else if (params.length == 0) {
+            throw new IllegalArgumentException("params array must have at least one element");
+        }
+        if (params.length == 1) {
+            // this is a "to" animation; set first element to null
+            values.add(null);
+        }
+        Collections.addAll(values, params);
+        this.type = params.getClass().getComponentType();
+        this.evaluator = evaluator;
+    }
 
-	/**
-	 * Returns the number of values stored in this object.
-	 * 
-	 * @return the number of values stored in this object
-	 */
-	int getSize() {
-		return values.size();
-	}
+    /**
+     * Returns the number of values stored in this object.
+     * 
+     * @return the number of values stored in this object
+     */
+    int getSize() {
+        return values.size();
+    }
 
-	/**
-	 * Returns the data type of the values stored in this object.
-	 * 
-	 * @return a Class value representing the type of values stored in this
-	 *         object
-	 */
-	Class<?> getType() {
-		return this.type;
-	}
+    /**
+     * Returns the data type of the values stored in this object.
+     * 
+     * @return a Class value representing the type of values stored in this
+     *         object
+     */
+    Class<?> getType() {
+        return this.type;
+    }
 
-	/**
-	 * Called at start of animation; sets starting value in simple "to"
-	 * animations.
-	 */
-	void setStartValue(T startValue) {
-		if (isToAnimation()) {
-			this.startValue = startValue;
-		}
-	}
+    /**
+     * Called at start of animation; sets starting value in simple "to"
+     * animations.
+     */
+    void setStartValue(T startValue) {
+        if (isToAnimation()) {
+            this.startValue = startValue;
+        }
+    }
 
-	/**
-	 * Utility method for determining whether this is a "to" animation (true if
-	 * the first value is null).
-	 */
-	boolean isToAnimation() {
-		return (values.get(0) == null);
-	}
+    /**
+     * Utility method for determining whether this is a "to" animation (true if
+     * the first value is null).
+     */
+    boolean isToAnimation() {
+        return (values.get(0) == null);
+    }
 
-	/**
-	 * Returns value calculated from the value at the lower index, the value at
-	 * the upper index, the fraction elapsed between these endpoints, and the
-	 * evaluator set up by this object at construction time.
-	 */
-	T getValue(int i0, int i1, float fraction) {
-		T value;
-		T lowerValue = values.get(i0);
-		if (lowerValue == null) {
-			// "to" animation
-			lowerValue = startValue;
-		}
-		if (i0 == i1) {
-			// trivial case
-			value = lowerValue;
-		} else {
-			T v0 = lowerValue;
-			T v1 = values.get(i1);
-			value = evaluator.interpolate(v0, v1, fraction);
-		}
-		return value;
-	}
+    /**
+     * Returns value calculated from the value at the lower index, the value at
+     * the upper index, the fraction elapsed between these endpoints, and the
+     * evaluator set up by this object at construction time.
+     */
+    T getValue(int i0, int i1, float fraction) {
+        T value;
+        T lowerValue = values.get(i0);
+        if (lowerValue == null) {
+            // "to" animation
+            lowerValue = startValue;
+        }
+        if (i0 == i1) {
+            // trivial case
+            value = lowerValue;
+        } else {
+            T v0 = lowerValue;
+            T v1 = values.get(i1);
+            value = evaluator.interpolate(v0, v1, fraction);
+        }
+        return value;
+    }
 }

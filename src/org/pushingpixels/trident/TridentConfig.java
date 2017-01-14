@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010 Trident Kirill Grouchnikov. All Rights Reserved.
+ * Copyright (c) 2005-2017 Trident Kirill Grouchnikov. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,214 +29,130 @@
  */
 package org.pushingpixels.trident;
 
-import java.io.*;
-import java.net.URL;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.pushingpixels.trident.TimelineEngine.TridentAnimationThread;
+import org.pushingpixels.trident.interpolator.CorePropertyInterpolators;
 import org.pushingpixels.trident.interpolator.PropertyInterpolator;
 import org.pushingpixels.trident.interpolator.PropertyInterpolatorSource;
+import org.pushingpixels.trident.swing.AWTPropertyInterpolators;
+import org.pushingpixels.trident.swing.SwingToolkitHandler;
 
 public class TridentConfig {
-	private static TridentConfig config;
+    private static TridentConfig config;
 
-	private Set<UIToolkitHandler> uiToolkitHandlers;
+    private Set<UIToolkitHandler> uiToolkitHandlers;
 
-	private Set<PropertyInterpolator> propertyInterpolators;
+    private Set<PropertyInterpolator> propertyInterpolators;
 
-	private TridentConfig.PulseSource pulseSource;
+    private TridentConfig.PulseSource pulseSource;
 
-	public interface PulseSource {
-		public void waitUntilNextPulse();
-	}
+    public interface PulseSource {
+        public void waitUntilNextPulse();
+    }
 
-	public static class FixedRatePulseSource implements
-			TridentConfig.PulseSource {
-		private int msDelay;
+    public static class FixedRatePulseSource implements TridentConfig.PulseSource {
+        private int msDelay;
 
-		public FixedRatePulseSource(int msDelay) {
-			this.msDelay = msDelay;
-		}
+        public FixedRatePulseSource(int msDelay) {
+            this.msDelay = msDelay;
+        }
 
-		@Override
-		public void waitUntilNextPulse() {
-			try {
-				Thread.sleep(this.msDelay);
-			} catch (InterruptedException ie) {
-				ie.printStackTrace();
-			}
-		}
-	}
+        @Override
+        public void waitUntilNextPulse() {
+            try {
+                Thread.sleep(this.msDelay);
+            } catch (InterruptedException ie) {
+                ie.printStackTrace();
+            }
+        }
+    }
 
-	private class DefaultPulseSource extends FixedRatePulseSource {
-		DefaultPulseSource() {
-			super(40);
-		}
-	}
+    private class DefaultPulseSource extends FixedRatePulseSource {
+        DefaultPulseSource() {
+            super(40);
+        }
+    }
 
-	private TridentConfig() {
-		this.pulseSource = new DefaultPulseSource();
+    private TridentConfig() {
+        this.pulseSource = new DefaultPulseSource();
 
-		this.uiToolkitHandlers = new HashSet<UIToolkitHandler>();
-		this.propertyInterpolators = new HashSet<PropertyInterpolator>();
-		ClassLoader classLoader = Thread.currentThread()
-				.getContextClassLoader();
-		try {
-			Enumeration urls = classLoader
-					.getResources("META-INF/trident-plugin.properties");
-			while (urls.hasMoreElements()) {
-				URL pluginUrl = (URL) urls.nextElement();
-				BufferedReader reader = null;
-				try {
-					reader = new BufferedReader(new InputStreamReader(pluginUrl
-							.openStream()));
-					while (true) {
-						String line = reader.readLine();
-						if (line == null)
-							break;
-						String[] parts = line.split("=");
-						if (parts.length != 2)
-							continue;
-						String key = parts[0];
-						String value = parts[1];
-						if ("UIToolkitHandler".compareTo(key) == 0) {
-							try {
-								Class pluginClass = classLoader
-										.loadClass(value);
-								if (pluginClass == null)
-									continue;
-								if (UIToolkitHandler.class
-										.isAssignableFrom(pluginClass)) {
-									UIToolkitHandler uiToolkitHandler = (UIToolkitHandler) pluginClass
-											.newInstance();
-									uiToolkitHandler.isHandlerFor(new Object());
-									this.uiToolkitHandlers
-											.add(uiToolkitHandler);
-								}
-							} catch (NoClassDefFoundError ncdfe) {
-								// trying to initialize a plugin with a missing
-								// class
-							}
-						}
-						if ("PropertyInterpolatorSource".compareTo(key) == 0) {
-							try {
-								Class piSourceClass = classLoader
-										.loadClass(value);
-								if (piSourceClass == null)
-									continue;
-								if (PropertyInterpolatorSource.class
-										.isAssignableFrom(piSourceClass)) {
-									PropertyInterpolatorSource piSource = (PropertyInterpolatorSource) piSourceClass
-											.newInstance();
-									Set<PropertyInterpolator> interpolators = piSource
-											.getPropertyInterpolators();
-									for (PropertyInterpolator pi : interpolators) {
-										try {
-											Class basePropertyClass = pi
-													.getBasePropertyClass();
-											// is in classpath?
-											basePropertyClass.getClass();
-											this.propertyInterpolators.add(pi);
-										} catch (NoClassDefFoundError ncdfe) {
-											// trying to initialize a plugin
-											// with a missing
-											// class - just skip
-										}
+        this.uiToolkitHandlers = new HashSet<UIToolkitHandler>();
+        this.propertyInterpolators = new HashSet<PropertyInterpolator>();
 
-									}
-									// this.propertyInterpolators.addAll(piSource
-									// .getPropertyInterpolators());
-								}
-							} catch (NoClassDefFoundError ncdfe) {
-								// trying to initialize a plugin with a missing
-								// class
-							}
-						}
-					}
-				} finally {
-					if (reader != null) {
-						try {
-							reader.close();
-						} catch (IOException ioe) {
-						}
-					}
-				}
-			}
-		} catch (Exception exc) {
-			exc.printStackTrace();
-		}
-	}
+        this.addUIToolkitHandler(new SwingToolkitHandler());
+        this.addPropertyInterpolatorSource(new CorePropertyInterpolators());
+        this.addPropertyInterpolatorSource(new AWTPropertyInterpolators());
+    }
 
-	public static synchronized TridentConfig getInstance() {
-		if (config == null)
-			config = new TridentConfig();
-		return config;
-	}
+    public static synchronized TridentConfig getInstance() {
+        if (config == null) {
+            config = new TridentConfig();
+        }
+        return config;
+    }
 
-	public synchronized Collection<UIToolkitHandler> getUIToolkitHandlers() {
-		return Collections.unmodifiableSet(this.uiToolkitHandlers);
-	}
+    public synchronized Collection<UIToolkitHandler> getUIToolkitHandlers() {
+        return Collections.unmodifiableSet(this.uiToolkitHandlers);
+    }
 
-	public synchronized Collection<PropertyInterpolator> getPropertyInterpolators() {
-		return Collections.unmodifiableSet(this.propertyInterpolators);
-	}
+    public synchronized Collection<PropertyInterpolator> getPropertyInterpolators() {
+        return Collections.unmodifiableSet(this.propertyInterpolators);
+    }
 
-	public synchronized PropertyInterpolator getPropertyInterpolator(
-			Object... values) {
-		for (PropertyInterpolator interpolator : this.propertyInterpolators) {
-			try {
-				Class basePropertyClass = interpolator.getBasePropertyClass();
-				boolean hasMatch = true;
-				for (Object value : values) {
-					if (!basePropertyClass.isAssignableFrom(value.getClass())) {
-						hasMatch = false;
-						continue;
-					}
-				}
-				if (hasMatch)
-					return interpolator;
-			} catch (NoClassDefFoundError ncdfe) {
-				continue;
-			}
-		}
-		return null;
-	}
+    public synchronized PropertyInterpolator getPropertyInterpolator(Object... values) {
+        for (PropertyInterpolator interpolator : this.propertyInterpolators) {
+            try {
+                Class basePropertyClass = interpolator.getBasePropertyClass();
+                boolean hasMatch = true;
+                for (Object value : values) {
+                    if (!basePropertyClass.isAssignableFrom(value.getClass())) {
+                        hasMatch = false;
+                        continue;
+                    }
+                }
+                if (hasMatch)
+                    return interpolator;
+            } catch (NoClassDefFoundError ncdfe) {
+                continue;
+            }
+        }
+        return null;
+    }
 
-	public synchronized void addPropertyInterpolator(
-			PropertyInterpolator pInterpolator) {
-		this.propertyInterpolators.add(pInterpolator);
-	}
+    public synchronized void addPropertyInterpolator(PropertyInterpolator pInterpolator) {
+        this.propertyInterpolators.add(pInterpolator);
+    }
 
-	public synchronized void addPropertyInterpolatorSource(
-			PropertyInterpolatorSource pInterpolatorSource) {
-		this.propertyInterpolators.addAll(pInterpolatorSource
-				.getPropertyInterpolators());
-	}
+    public synchronized void addPropertyInterpolatorSource(
+            PropertyInterpolatorSource pInterpolatorSource) {
+        this.propertyInterpolators.addAll(pInterpolatorSource.getPropertyInterpolators());
+    }
 
-	public synchronized void removePropertyInterpolator(
-			PropertyInterpolator pInterpolator) {
-		this.propertyInterpolators.remove(pInterpolator);
-	}
+    public synchronized void removePropertyInterpolator(PropertyInterpolator pInterpolator) {
+        this.propertyInterpolators.remove(pInterpolator);
+    }
 
-	public synchronized void addUIToolkitHandler(
-			UIToolkitHandler uiToolkitHandler) {
-		this.uiToolkitHandlers.add(uiToolkitHandler);
-	}
+    public synchronized void addUIToolkitHandler(UIToolkitHandler uiToolkitHandler) {
+        this.uiToolkitHandlers.add(uiToolkitHandler);
+    }
 
-	public synchronized void removeUIToolkitHandler(
-			UIToolkitHandler uiToolkitHandler) {
-		this.uiToolkitHandlers.remove(uiToolkitHandler);
-	}
+    public synchronized void removeUIToolkitHandler(UIToolkitHandler uiToolkitHandler) {
+        this.uiToolkitHandlers.remove(uiToolkitHandler);
+    }
 
-	public synchronized void setPulseSource(PulseSource pulseSource) {
-		TridentAnimationThread current = TimelineEngine.getInstance().animatorThread;
-		if ((current != null) && current.isAlive())
-			throw new IllegalStateException(
-					"Cannot replace the pulse source thread once it's running");
-		this.pulseSource = pulseSource;
-	}
+    public synchronized void setPulseSource(PulseSource pulseSource) {
+        TridentAnimationThread current = TimelineEngine.getInstance().animatorThread;
+        if ((current != null) && current.isAlive())
+            throw new IllegalStateException(
+                    "Cannot replace the pulse source thread once it's running");
+        this.pulseSource = pulseSource;
+    }
 
-	public synchronized TridentConfig.PulseSource getPulseSource() {
-		return pulseSource;
-	}
+    public synchronized TridentConfig.PulseSource getPulseSource() {
+        return pulseSource;
+    }
 }

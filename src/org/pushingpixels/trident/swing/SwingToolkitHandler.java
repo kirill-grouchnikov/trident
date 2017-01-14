@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005-2010 Trident Kirill Grouchnikov. All Rights Reserved.
+ * Copyright (c) 2005-2017 Trident Kirill Grouchnikov. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted provided that the following conditions are met:
@@ -36,21 +36,21 @@ import javax.swing.SwingUtilities;
 import org.pushingpixels.trident.UIToolkitHandler;
 
 public class SwingToolkitHandler implements UIToolkitHandler {
-	@Override
-	public boolean isHandlerFor(Object mainTimelineObject) {
-		return (mainTimelineObject instanceof Component);
-	}
+    @Override
+    public boolean isHandlerFor(Object mainTimelineObject) {
+        return (mainTimelineObject instanceof Component);
+    }
 
-	@Override
-	public boolean isInReadyState(Object mainTimelineObject) {
-		return ((Component) mainTimelineObject).isDisplayable();
-	}
+    @Override
+    public boolean isInReadyState(Object mainTimelineObject) {
+        return ((Component) mainTimelineObject).isDisplayable();
+    }
 
-	@Override
-	public void runOnUIThread(Object mainTimelineObject, Runnable runnable) {
-		if (SwingUtilities.isEventDispatchThread())
-			runnable.run();
-		else
-			SwingUtilities.invokeLater(runnable);
-	}
+    @Override
+    public void runOnUIThread(Object mainTimelineObject, Runnable runnable) {
+        if (SwingUtilities.isEventDispatchThread())
+            runnable.run();
+        else
+            SwingUtilities.invokeLater(runnable);
+    }
 }
