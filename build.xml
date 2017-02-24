@@ -48,7 +48,7 @@
 	<property name="trident.lib.dir" value="${module.trident.basedir}/lib" />
 	<property name="trident.src.dir" value="${module.trident.basedir}/src/" />
 	<property name="trident.version" value="1.4" />
-	<property name="trident.versionName" value="1.4dev Enchanted" />
+	<property name="trident.versionName" value="1.4final Enchanted" />
 
 	<path id="trident.module.bootclasspath">
 		<!-- Paths to be included in compilation bootclasspath -->
@@ -128,8 +128,8 @@
 
 	<target name="jar-bin" description="create runtime jar">
 		<mkdir dir="${trident.drop.dir}" />
-		<delete file="${trident.drop.dir}/trident.jar" />
-		<jar compress="true" destfile="${trident.drop.dir}/trident.jar">
+		<delete file="${trident.drop.dir}/trident-${trident.version}.jar" />
+		<jar compress="true" destfile="${trident.drop.dir}/trident-${trident.version}.jar">
 			<fileset dir="${trident.output.dir}/" includes="org/**" />
 			<fileset dir="${module.trident.basedir}/" includes="resources/**" />
 			<manifest>
@@ -138,13 +138,12 @@
 				<attribute name="Trident-BuildStamp" value="${build.time}" />
 			</manifest>
 		</jar>
-		<copy file="${trident.drop.dir}/trident.jar" todir="${module.trident.basedir}/www/webstart" />
 	</target>
 
 	<target name="jar-tst" description="create test jar">
 		<mkdir dir="${trident.drop.dir}" />
-		<delete file="${trident.drop.dir}/trident-tst.jar" />
-		<jar compress="true" destfile="${trident.drop.dir}/trident-tst.jar">
+		<delete file="${trident.drop.dir}/trident-tst-${trident.version}.jar" />
+		<jar compress="true" destfile="${trident.drop.dir}/trident-tst-${trident.version}.jar">
 			<fileset dir="${trident.output.dir}/" includes="test/**" />
 			<fileset dir="${module.trident.basedir}/" includes="resources/**" />
 			<manifest>
@@ -153,7 +152,6 @@
 				<attribute name="Trident-BuildStamp" value="${build.time}" />
 			</manifest>
 		</jar>
-		<copy file="${trident.drop.dir}/trident-tst.jar" todir="${module.trident.basedir}/www/webstart" />
 	</target>
 
 	<target name="distro" description="create distribution">
@@ -163,12 +161,6 @@
 				<include name="src/**" />
 				<include name="build*.xml" />
 				<include name="build*.properties" />
-				<!--
-				<include name="www/index.html" />
-				<include name="www/docs/**" />
-				<include name="www/images/**" />
-				<include name="docs/**" />
-				-->
 			</fileset>
 		</zip>
 	</target>

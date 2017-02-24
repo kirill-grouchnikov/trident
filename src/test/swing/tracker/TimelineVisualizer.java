@@ -41,7 +41,7 @@ public class TimelineVisualizer extends JComponent {
                     }
                 }
             });
-            dotTimeline.setDuration(2000);
+            dotTimeline.setDuration(10000);
             dotTimeline.play();
         }
     }
