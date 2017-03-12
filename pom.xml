@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.pushingpixels</groupId>
+	<artifactId>trident</artifactId>
+	<version>1.4</version>
+	<name>Trident</name>
+	<description>Java animation library</description>
+	<url>https://github.com/kirill-grouchnikov/trident</url>
+	<developers>
+		<developer>
+			<name>Kirill Grouchnikov</name>
+			<email>kirillcool@yahoo.com</email>
+			<roles>
+				<role>author</role>
+				<role>developer</role>
+			</roles>
+		</developer>
+	</developers>
+	<properties>
+		<project.build.sourceEncoding>ISO-8859-1</project.build.sourceEncoding>
+	</properties>
+
+	<build>
+		<sourceDirectory>src</sourceDirectory>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.2</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<excludes>
+						<exclude>test/**</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
