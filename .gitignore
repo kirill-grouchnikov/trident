@@ -1,3 +1,23 @@
-classes/*
-.*
-!.gitignore
+classes/
+drop/
+
+# IntelliJ project files 
+*.iml
+*.iws
+*.ipr
+.idea/
+
+# eclipse project file
+.settings/
+.classpath
+.project
+
+# Ignore Maven files
+target/
+release.properties
+pom.xml.releaseBackup
+pom.xml.tag
+
+# OS generated files
+.DS_Store
+Thumbs.db
