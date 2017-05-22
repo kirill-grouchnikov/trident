@@ -1,0 +1,6 @@
+
+siteUrl = https://github.com/kirill-grouchnikov/trident
+gitUrl = git@github.com:kirill-grouchnikov/trident
+groupId = org.pushingpixels
+id = trident
+name = trident
