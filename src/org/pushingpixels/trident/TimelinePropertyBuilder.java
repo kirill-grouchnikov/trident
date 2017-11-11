@@ -301,15 +301,18 @@ public class TimelinePropertyBuilder<T> {
                     getPropertySetter(obj, fieldName, propertySetter));
             this.propertyInterpolator = propertyInterpolator;
             this.to = to;
+            //System.out.println("Created @" + hashCode() + " for " + fieldName);
         }
 
         @Override
         void onStart() {
             this.from = getter.get(object, fieldName);
+            //System.out.println("onStart on @" + hashCode());
         }
 
         @Override
         void updateFieldValue(float timelinePosition) {
+            //System.out.println("updateFieldValue on @" + hashCode());
             try {
                 Object value = this.propertyInterpolator.interpolate(from, to, timelinePosition);
                 this.setter.set(this.object, this.fieldName, value);

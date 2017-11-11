@@ -47,8 +47,8 @@
 	<property name="trident.drop.dir" value="${module.trident.basedir}/drop" />
 	<property name="trident.lib.dir" value="${module.trident.basedir}/lib" />
 	<property name="trident.src.dir" value="${module.trident.basedir}/src/" />
-	<property name="trident.version" value="1.4" />
-	<property name="trident.versionName" value="1.4final Enchanted" />
+	<property name="trident.version" value="1.5.00-dev" />
+	<property name="trident.versionName" value="1.5.00-dev Faraday" />
 
 	<path id="trident.module.bootclasspath">
 		<!-- Paths to be included in compilation bootclasspath -->
@@ -127,9 +127,9 @@
 	</target>
 
 	<target name="jar-bin" description="create runtime jar">
-		<mkdir dir="${trident.drop.dir}" />
-		<delete file="${trident.drop.dir}/trident-${trident.version}.jar" />
-		<jar compress="true" destfile="${trident.drop.dir}/trident-${trident.version}.jar">
+		<mkdir dir="${trident.drop.dir}/${trident.version}" />
+		<delete file="${trident.drop.dir}/${trident.version}/trident-${trident.version}.jar" />
+		<jar compress="true" destfile="${trident.drop.dir}/${trident.version}/trident-${trident.version}.jar">
 			<fileset dir="${trident.output.dir}/" includes="org/**" />
 			<fileset dir="${module.trident.basedir}/" includes="resources/**" />
 			<manifest>
@@ -138,12 +138,14 @@
 				<attribute name="Trident-BuildStamp" value="${build.time}" />
 			</manifest>
 		</jar>
+        <copy file="${trident.drop.dir}/${trident.version}/trident-${trident.version}.jar" todir="${module.trident.basedir}/../flamingo/lib/" />
+        <copy file="${trident.drop.dir}/${trident.version}/trident-${trident.version}.jar" todir="${module.trident.basedir}/../substance/lib/" />
 	</target>
 
 	<target name="jar-tst" description="create test jar">
-		<mkdir dir="${trident.drop.dir}" />
-		<delete file="${trident.drop.dir}/trident-tst-${trident.version}.jar" />
-		<jar compress="true" destfile="${trident.drop.dir}/trident-tst-${trident.version}.jar">
+		<mkdir dir="${trident.drop.dir}/${trident.version}" />
+		<delete file="${trident.drop.dir}/${trident.version}/trident-tst-${trident.version}.jar" />
+		<jar compress="true" destfile="${trident.drop.dir}/${trident.version}/trident-tst-${trident.version}.jar">
 			<fileset dir="${trident.output.dir}/" includes="test/**" />
 			<fileset dir="${module.trident.basedir}/" includes="resources/**" />
 			<manifest>

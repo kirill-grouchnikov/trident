@@ -64,7 +64,7 @@ public class Timeline implements TimelineScenario.TimelineScenarioActor {
 
     UIToolkitHandler uiToolkitHandler;
 
-    Chain callback;
+    Chain callbackChain;
 
     String name;
 
@@ -93,8 +93,8 @@ public class Timeline implements TimelineScenario.TimelineScenarioActor {
     long timeUntilPlay;
 
     /**
-     * Indication whether the looping timeline should stop at reaching the end
-     * of the cycle. Relevant only when {@link #isLooping} is <code>true</code>.
+     * Indication whether the looping timeline should stop at reaching the end of the cycle.
+     * Relevant only when {@link #isLooping} is <code>true</code>.
      */
     boolean toCancelAtCycleBreak;
 
@@ -109,8 +109,8 @@ public class Timeline implements TimelineScenario.TimelineScenarioActor {
     }
 
     public enum TimelineState {
-        IDLE(false), READY(false), PLAYING_FORWARD(true), PLAYING_REVERSE(true), 
-        SUSPENDED(false), CANCELLED(false), DONE(false);
+        IDLE(false), READY(false), PLAYING_FORWARD(true), PLAYING_REVERSE(true), SUSPENDED(
+                false), CANCELLED(false), DONE(false);
 
         private boolean isActive;
 
@@ -127,8 +127,9 @@ public class Timeline implements TimelineScenario.TimelineScenarioActor {
                 for (AbstractFieldInfo fInfo : propertiesToInterpolate) {
                     // check whether the object is in the ready state
                     if ((uiToolkitHandler != null)
-                            && !uiToolkitHandler.isInReadyState(fInfo.object))
+                            && !uiToolkitHandler.isInReadyState(fInfo.object)) {
                         continue;
+                    }
                     fInfo.onStart();
                 }
             }
@@ -166,12 +167,12 @@ public class Timeline implements TimelineScenario.TimelineScenarioActor {
     }
 
     class Chain implements TimelineCallback {
+        private TimelineCallback setterCallback;
         private List<TimelineCallback> callbacks;
 
-        public Chain(TimelineCallback... callbacks) {
+        public Chain(Setter setterCallback) {
+            this.setterCallback = setterCallback;
             this.callbacks = new ArrayList<TimelineCallback>();
-            for (TimelineCallback callback : callbacks)
-                this.callbacks.add(callback);
         }
 
         public void addCallback(TimelineCallback callback) {
@@ -182,60 +183,84 @@ public class Timeline implements TimelineScenario.TimelineScenarioActor {
             this.callbacks.remove(callback);
         }
 
+        private void handleStateChange(final TimelineCallback callback,
+                final TimelineState oldState, final TimelineState newState,
+                final float durationFraction, final float timelinePosition) {
+            // special handling for chained callbacks not running on UI
+            // thread
+            boolean shouldRunOnUIThread = false;
+            Class<?> clazz = callback.getClass();
+            while ((clazz != null) && !shouldRunOnUIThread) {
+                shouldRunOnUIThread = clazz.isAnnotationPresent(RunOnUIThread.class);
+                clazz = clazz.getSuperclass();
+            }
+            if (shouldRunOnUIThread && (Timeline.this.uiToolkitHandler != null)) {
+                Timeline.this.uiToolkitHandler.runOnUIThread(mainObject,
+                        () -> callback.onTimelineStateChanged(oldState, newState, durationFraction,
+                                timelinePosition));
+            } else {
+                callback.onTimelineStateChanged(oldState, newState, durationFraction,
+                        timelinePosition);
+            }
+        }
+
         @Override
         public void onTimelineStateChanged(final TimelineState oldState,
                 final TimelineState newState, final float durationFraction,
                 final float timelinePosition) {
-            if ((uiToolkitHandler != null) && !uiToolkitHandler.isInReadyState(mainObject))
+            if ((uiToolkitHandler != null) && !uiToolkitHandler.isInReadyState(mainObject)) {
+                if (TimelineEngine.DEBUG_MODE) {
+                    System.out.println("Main object is not in ready state for " + oldState.name()
+                            + " to " + newState.name());
+                }
                 return;
+            }
+
+            handleStateChange(this.setterCallback, oldState, newState, durationFraction,
+                    timelinePosition);
             for (int i = this.callbacks.size() - 1; i >= 0; i--) {
-                final TimelineCallback callback = this.callbacks.get(i);
-                // special handling for chained callbacks not running on UI
-                // thread
-                boolean shouldRunOnUIThread = false;
-                Class<?> clazz = callback.getClass();
-                while ((clazz != null) && !shouldRunOnUIThread) {
-                    shouldRunOnUIThread = clazz.isAnnotationPresent(RunOnUIThread.class);
-                    clazz = clazz.getSuperclass();
-                }
-                if (shouldRunOnUIThread && (Timeline.this.uiToolkitHandler != null)) {
-                    Timeline.this.uiToolkitHandler.runOnUIThread(mainObject,
-                            () -> callback.onTimelineStateChanged(oldState, newState,
-                                    durationFraction, timelinePosition));
-                } else {
-                    callback.onTimelineStateChanged(oldState, newState, durationFraction,
-                            timelinePosition);
-                }
+                handleStateChange(this.callbacks.get(i), oldState, newState, durationFraction,
+                        timelinePosition);
+            }
+        }
+
+        private void handlePulse(final TimelineCallback callback, final float durationFraction,
+                final float timelinePosition) {
+            // special handling for chained callbacks not running on UI
+            // thread
+            boolean shouldRunOnUIThread = false;
+            Class<?> clazz = callback.getClass();
+            while ((clazz != null) && !shouldRunOnUIThread) {
+                shouldRunOnUIThread = clazz.isAnnotationPresent(RunOnUIThread.class);
+                clazz = clazz.getSuperclass();
+            }
+            if (shouldRunOnUIThread && (Timeline.this.uiToolkitHandler != null)) {
+                Timeline.this.uiToolkitHandler.runOnUIThread(mainObject, () -> {
+                    if (Timeline.this.getState() == TimelineState.CANCELLED)
+                        return;
+                    // System.err.println("Timeline @"
+                    // + Timeline.this.hashCode());
+                    callback.onTimelinePulse(durationFraction, timelinePosition);
+                });
+            } else {
+                // System.err.println("Timeline @" +
+                // Timeline.this.hashCode());
+                callback.onTimelinePulse(durationFraction, timelinePosition);
             }
         }
 
         @Override
         public void onTimelinePulse(final float durationFraction, final float timelinePosition) {
-            if ((uiToolkitHandler != null) && !uiToolkitHandler.isInReadyState(mainObject))
+            if ((uiToolkitHandler != null) && !uiToolkitHandler.isInReadyState(mainObject)) {
+                if (TimelineEngine.DEBUG_MODE) {
+                    System.out.println("Main object is not in ready state for pulse " + durationFraction);
+                }
                 return;
+            }
+
+            handlePulse(this.setterCallback, durationFraction, timelinePosition);
             for (int i = this.callbacks.size() - 1; i >= 0; i--) {
-                final TimelineCallback callback = this.callbacks.get(i);
-                // special handling for chained callbacks not running on UI
-                // thread
-                boolean shouldRunOnUIThread = false;
-                Class<?> clazz = callback.getClass();
-                while ((clazz != null) && !shouldRunOnUIThread) {
-                    shouldRunOnUIThread = clazz.isAnnotationPresent(RunOnUIThread.class);
-                    clazz = clazz.getSuperclass();
-                }
-                if (shouldRunOnUIThread && (Timeline.this.uiToolkitHandler != null)) {
-                    Timeline.this.uiToolkitHandler.runOnUIThread(mainObject, () -> {
-                        if (Timeline.this.getState() == TimelineState.CANCELLED)
-                            return;
-                        // System.err.println("Timeline @"
-                        // + Timeline.this.hashCode());
-                        callback.onTimelinePulse(durationFraction, timelinePosition);
-                    });
-                } else {
-                    // System.err.println("Timeline @" +
-                    // Timeline.this.hashCode());
-                    callback.onTimelinePulse(durationFraction, timelinePosition);
-                }
+                handlePulse(this.callbacks.get(i), durationFraction, timelinePosition);
             }
         }
     }
@@ -258,9 +283,8 @@ public class Timeline implements TimelineScenario.TimelineScenarioActor {
         // if the main timeline object is handled by a UI toolkit handler,
         // the setters registered with the different addProperty
         // APIs need to run with the matching threading policy
-        TimelineCallback setterCallback = (this.uiToolkitHandler != null) ? new UISetter()
-                : new Setter();
-        this.callback = new Chain(setterCallback);
+        Setter setterCallback = (this.uiToolkitHandler != null) ? new UISetter() : new Setter();
+        this.callbackChain = new Chain(setterCallback);
 
         this.duration = 500;
         this.propertiesToInterpolate = new ArrayList<AbstractFieldInfo>();
@@ -311,7 +335,7 @@ public class Timeline implements TimelineScenario.TimelineScenarioActor {
             throw new IllegalArgumentException(
                     "Cannot change state of non-idle timeline [" + this.toString() + "]");
         }
-        this.callback.addCallback(callback);
+        this.callbackChain.addCallback(callback);
     }
 
     public final void removeCallback(TimelineCallback callback) {
@@ -319,7 +343,7 @@ public class Timeline implements TimelineScenario.TimelineScenarioActor {
             throw new IllegalArgumentException(
                     "Cannot change state of non-idle timeline [" + this.toString() + "]");
         }
-        this.callback.removeCallback(callback);
+        this.callbackChain.removeCallback(callback);
     }
 
     public static <T> TimelinePropertyBuilder<T> property(String propertyName) {
@@ -409,11 +433,10 @@ public class Timeline implements TimelineScenario.TimelineScenarioActor {
     }
 
     /**
-     * Cancels this timeline. The timeline transitions to the
-     * {@link TimelineState#CANCELLED} state, preserving its current timeline
-     * position. After application callbacks and field interpolations are done
-     * on the {@link TimelineState#CANCELLED} state, the timeline transitions to
-     * the {@link TimelineState#IDLE} state. Application callbacks and field
+     * Cancels this timeline. The timeline transitions to the {@link TimelineState#CANCELLED} state,
+     * preserving its current timeline position. After application callbacks and field
+     * interpolations are done on the {@link TimelineState#CANCELLED} state, the timeline
+     * transitions to the {@link TimelineState#IDLE} state. Application callbacks and field
      * interpolations are done on this state as well.
      * 
      * @see #end()
@@ -424,13 +447,11 @@ public class Timeline implements TimelineScenario.TimelineScenarioActor {
     }
 
     /**
-     * Ends this timeline. The timeline transitions to the
-     * {@link TimelineState#DONE} state, with the timeline position set to 0.0
-     * or 1.0 - based on the direction of the timeline. After application
-     * callbacks and field interpolations are done on the
-     * {@link TimelineState#DONE} state, the timeline transitions to the
-     * {@link TimelineState#IDLE} state. Application callbacks and field
-     * interpolations are done on this state as well.
+     * Ends this timeline. The timeline transitions to the {@link TimelineState#DONE} state, with
+     * the timeline position set to 0.0 or 1.0 - based on the direction of the timeline. After
+     * application callbacks and field interpolations are done on the {@link TimelineState#DONE}
+     * state, the timeline transitions to the {@link TimelineState#IDLE} state. Application
+     * callbacks and field interpolations are done on this state as well.
      * 
      * @see #cancel()
      * @see #abort()
@@ -440,9 +461,8 @@ public class Timeline implements TimelineScenario.TimelineScenarioActor {
     }
 
     /**
-     * Aborts this timeline. The timeline transitions to the
-     * {@link TimelineState#IDLE} state. No application callbacks or field
-     * interpolations are done.
+     * Aborts this timeline. The timeline transitions to the {@link TimelineState#IDLE} state. No
+     * application callbacks or field interpolations are done.
      * 
      * @see #cancel()
      * @see #end()
@@ -461,8 +481,8 @@ public class Timeline implements TimelineScenario.TimelineScenarioActor {
     }
 
     /**
-     * Requests that the specified timeline should stop at the end of the cycle.
-     * This method should be called only on looping timelines.
+     * Requests that the specified timeline should stop at the end of the cycle. This method should
+     * be called only on looping timelines.
      */
     public void cancelAtCycleBreak() {
         if (!this.isLooping)
@@ -516,6 +536,7 @@ public class Timeline implements TimelineScenario.TimelineScenarioActor {
     @Override
     public String toString() {
         StringBuffer res = new StringBuffer();
+        res.append("[" + this.id + "] ");
         if (this.name != null) {
             res.append(this.name);
         }
@@ -528,6 +549,12 @@ public class Timeline implements TimelineScenario.TimelineScenarioActor {
 
         res.append(" " + this.getState().name());
         res.append(":" + this.timelinePosition);
+
+        res.append(" [ ");
+        for (AbstractFieldInfo afi : this.propertiesToInterpolate) {
+            res.append(afi.fieldName + " ");
+        }
+        res.append("]");
 
         return res.toString();
     }

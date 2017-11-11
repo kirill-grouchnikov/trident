@@ -40,16 +40,14 @@ import org.pushingpixels.trident.TimelineScenario.TimelineScenarioState;
 import org.pushingpixels.trident.callback.RunOnUIThread;
 
 /**
- * The Trident timeline engine. This is the main entry point to play
- * {@link Timeline}s and {@link TimelineScenario}s. Use the
- * {@link #getInstance()} method to get the timeline engine.
+ * The Trident timeline engine. This is the main entry point to play {@link Timeline}s and
+ * {@link TimelineScenario}s. Use the {@link #getInstance()} method to get the timeline engine.
  * 
  * @author Kirill Grouchnikov
  */
 class TimelineEngine {
     /**
-     * Debug mode indicator. Set to <code>true</code> to have trace messages on
-     * console.
+     * Debug mode indicator. Set to <code>true</code> to have trace messages on console.
      */
     public static boolean DEBUG_MODE = false;
 
@@ -94,9 +92,8 @@ class TimelineEngine {
         public Object mainObj;
 
         /**
-         * ID to distinguish between different sub-components of
-         * {@link #mainObj}. For example, the tabbed pane uses this field to
-         * make tab-specific animations.
+         * ID to distinguish between different sub-components of {@link #mainObj}. For example, the
+         * tabbed pane uses this field to make tab-specific animations.
          */
         @SuppressWarnings("unchecked")
         public Comparable subID;
@@ -107,8 +104,8 @@ class TimelineEngine {
          * @param mainObj
          *            The main object.
          * @param subID
-         *            ID to distinguish between different sub-components of
-         *            <code>mainObj</code>. Can be <code>null</code>.
+         *            ID to distinguish between different sub-components of <code>mainObj</code>.
+         *            Can be <code>null</code>.
          */
         @SuppressWarnings("unchecked")
         public FullObjectID(Object mainObj, Comparable subID) {
@@ -245,8 +242,7 @@ class TimelineEngine {
     }
 
     /**
-     * Updates all timelines that are currently registered with
-     * <code>this</code> tracker.
+     * Updates all timelines that are currently registered with <code>this</code> tracker.
      */
     void updateTimelines() {
         synchronized (LOCK) {
@@ -300,6 +296,9 @@ class TimelineEngine {
                     // can go from READY to PLAYING
                     timelineWasInReadyState = true;
                     timeline.popState();
+                    if (DEBUG_MODE) {
+                        System.out.println("Moving " + timeline.id + " to READY");
+                    }
                     this.callbackCallTimelineStateChanged(timeline, TimelineState.READY);
                 }
 
@@ -308,7 +307,7 @@ class TimelineEngine {
                     System.out.println("Processing " + timeline.id + "["
                             + timeline.mainObject.getClass().getSimpleName() + "] from "
                             + timeline.durationFraction + ". Callback - "
-                            + (timeline.callback == null ? "no" : "yes"));
+                            + (timeline.callbackChain == null ? "no" : "yes"));
                 }
                 // Component comp = entry.getKey();
 
@@ -321,7 +320,7 @@ class TimelineEngine {
                     }
                     timeline.timelinePosition = timeline.ease.map(timeline.durationFraction);
                     if (DEBUG_MODE) {
-                        System.out.println("Timeline position: "
+                        System.out.println("Timeline " + timeline.id + " position: "
                                 + ((long) (timeline.durationFraction * timeline.duration)) + "/"
                                 + timeline.duration + " = " + timeline.durationFraction);
                     }
@@ -485,20 +484,34 @@ class TimelineEngine {
         final float timelinePosition = timeline.timelinePosition;
         Runnable callbackRunnable = () -> {
             boolean shouldRunOnUIThread = false;
-            Class<?> clazz = timeline.callback.getClass();
+            Class<?> clazz = timeline.callbackChain.getClass();
             while ((clazz != null) && !shouldRunOnUIThread) {
                 shouldRunOnUIThread = clazz.isAnnotationPresent(RunOnUIThread.class);
                 clazz = clazz.getSuperclass();
             }
             if (shouldRunOnUIThread && (timeline.uiToolkitHandler != null)) {
+                if (DEBUG_MODE) {
+                    System.out.println("Scheduling callback state change from " + oldState.name()
+                            + " to " + newState.name() + " on timeline " + timeline.id);
+                }
+                // System.out.println("Will update from " + oldState + " to " + newState);
                 timeline.uiToolkitHandler.runOnUIThread(timeline.mainObject,
-                        () -> timeline.callback.onTimelineStateChanged(oldState, newState,
+                        () -> timeline.callbackChain.onTimelineStateChanged(oldState, newState,
                                 durationFraction, timelinePosition));
             } else {
-                timeline.callback.onTimelineStateChanged(oldState, newState, durationFraction,
+                if (DEBUG_MODE) {
+                    System.out.println("Calling callback state change from " + oldState.name()
+                            + " to " + newState.name() + " on timeline " + timeline.id);
+                }
+                // System.out.println("Updating from " + oldState + " to " + newState);
+                timeline.callbackChain.onTimelineStateChanged(oldState, newState, durationFraction,
                         timelinePosition);
             }
         };
+        if (DEBUG_MODE) {
+            System.out.println("Scheduling callback runnable for " + oldState.name() + " to "
+                    + newState.name() + " on timeline " + timeline.id);
+        }
         this.callbackQueue.add(callbackRunnable);
     }
 
@@ -507,16 +520,17 @@ class TimelineEngine {
         final float timelinePosition = timeline.timelinePosition;
         Runnable callbackRunnable = () -> {
             boolean shouldRunOnUIThread = false;
-            Class<?> clazz = timeline.callback.getClass();
+            Class<?> clazz = timeline.callbackChain.getClass();
             while ((clazz != null) && !shouldRunOnUIThread) {
                 shouldRunOnUIThread = clazz.isAnnotationPresent(RunOnUIThread.class);
                 clazz = clazz.getSuperclass();
             }
             if (shouldRunOnUIThread && (timeline.uiToolkitHandler != null)) {
-                timeline.uiToolkitHandler.runOnUIThread(timeline.mainObject, () -> timeline.callback
-                        .onTimelinePulse(durationFraction, timelinePosition));
+                timeline.uiToolkitHandler.runOnUIThread(timeline.mainObject,
+                        () -> timeline.callbackChain.onTimelinePulse(durationFraction,
+                                timelinePosition));
             } else {
-                timeline.callback.onTimelinePulse(durationFraction, timelinePosition);
+                timeline.callbackChain.onTimelinePulse(durationFraction, timelinePosition);
             }
         };
         this.callbackQueue.add(callbackRunnable);
@@ -528,18 +542,16 @@ class TimelineEngine {
     }
 
     /**
-     * Returns an existing running timeline that matches the specified
-     * parameters.
+     * Returns an existing running timeline that matches the specified parameters.
      * 
      * @param timelineKind
      *            Timeline kind.
      * @param object
      *            Component.
      * @param secondaryId
-     *            Secondary id. Relevant for such components as tabbed panes
-     *            (where animation is performed on different tabs).
-     * @return An existing running timeline that matches the specified
-     *         parameters.
+     *            Secondary id. Relevant for such components as tabbed panes (where animation is
+     *            performed on different tabs).
+     * @return An existing running timeline that matches the specified parameters.
      */
     private Timeline getRunningTimeline(Timeline timeline) {
         synchronized (LOCK) {
@@ -563,10 +575,10 @@ class TimelineEngine {
             // this.nothingTracked = false;
             if (DEBUG_MODE) {
                 System.out.println(
-                        "Added (" + timeline.id + ") on " + timeline.fullObjectID + "]. Fade "
+                        "Added (" + timeline.id + ") on [" + timeline.fullObjectID + "]. State - "
                         // + timeline.timelineKind.toString() + " with state "
                                 + timeline.getState().name() + ". Callback - "
-                                + (timeline.callback == null ? "no" : "yes"));
+                                + (timeline.callbackChain == null ? "no" : "yes"));
             }
         }
     }
@@ -717,9 +729,9 @@ class TimelineEngine {
     }
 
     /**
-     * Stops tracking of all timelines. Note that this function <b>does not</b>
-     * stop the timeline engine thread ({@link #animatorThread}) and the
-     * timeline callback thread ({@link #callbackThread}).
+     * Stops tracking of all timelines. Note that this function <b>does not</b> stop the timeline
+     * engine thread ({@link #animatorThread}) and the timeline callback thread
+     * ({@link #callbackThread}).
      */
     public void cancelAllTimelines() {
         synchronized (LOCK) {
@@ -864,6 +876,7 @@ class TimelineEngine {
         }
     }
 
+    @SuppressWarnings("incomplete-switch")
     void runTimelineOperation(Timeline timeline, TimelineOperationKind operationKind,
             Runnable operationRunnable) {
         synchronized (LOCK) {
