@@ -4,7 +4,6 @@ import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -91,71 +90,58 @@ public class BallTracker extends JFrame {
         controls.add(msCycleDelay);
 
         JButton runTimeline = new JButton("run");
-        runTimeline.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (timelineBallFalling != null)
-                    timelineBallFalling.cancel();
-                timelineBallFalling = new Timeline(ballPanel);
-                timelineBallFalling.addPropertyToInterpolate("ballY", BallPanel.RADIUS,
-                        ballPanel.getHeight() - BallPanel.RADIUS);
-                timelineBallFalling.setDuration(2000);
-                timelineBallFalling.setInitialDelay(Integer.parseInt(msInitialDelay.getText()));
-                timelineBallFalling.setCycleDelay(Integer.parseInt(msCycleDelay.getText()));
-                timelineBallFalling.setEase(
-                        ((Map.Entry<String, TimelineEase>) easeCombo.getSelectedItem()).getValue());
+        runTimeline.addActionListener((ActionEvent e) -> {
+            if (timelineBallFalling != null)
+                timelineBallFalling.cancel();
+            timelineBallFalling = new Timeline(ballPanel);
+            timelineBallFalling.addPropertyToInterpolate("ballY", BallPanel.RADIUS,
+                    ballPanel.getHeight() - BallPanel.RADIUS);
+            timelineBallFalling.setDuration(2000);
+            timelineBallFalling.setInitialDelay(Integer.parseInt(msInitialDelay.getText()));
+            timelineBallFalling.setCycleDelay(Integer.parseInt(msCycleDelay.getText()));
+            timelineBallFalling.setEase(
+                    ((Map.Entry<String, TimelineEase>) easeCombo.getSelectedItem()).getValue());
 
-                timelineBallFalling.addCallback(new TimelineCallbackAdapter() {
-                    @Override
-                    public void onTimelinePulse(float durationFraction, float timelinePosition) {
-                        // add a fading dot to visualize the timeline
-                        // interpolation behavior
-                        visualizer.addDot(durationFraction, timelinePosition);
-                    }
-
-                    @Override
-                    public void onTimelineStateChanged(TimelineState oldState,
-                            TimelineState newState, float durationFraction,
-                            float timelinePosition) {
-                        System.out.println(
-                                "State change: " + oldState.name() + " -> " + newState.name());
-                    }
-                });
-
-                long toSkip = Long.parseLong(msToSkip.getText());
-                if (toSkip > 0) {
-                    timelineBallFalling.playLoopSkipping(RepeatBehavior.REVERSE, toSkip);
-                } else {
-                    timelineBallFalling.playLoop(RepeatBehavior.REVERSE);
+            timelineBallFalling.addCallback(new TimelineCallbackAdapter() {
+                @Override
+                public void onTimelinePulse(float durationFraction, float timelinePosition) {
+                    // add a fading dot to visualize the timeline
+                    // interpolation behavior
+                    visualizer.addDot(durationFraction, timelinePosition);
                 }
+
+                @Override
+                public void onTimelineStateChanged(TimelineState oldState, TimelineState newState,
+                        float durationFraction, float timelinePosition) {
+                    System.out
+                            .println("State change: " + oldState.name() + " -> " + newState.name());
+                }
+            });
+
+            long toSkip = Long.parseLong(msToSkip.getText());
+            if (toSkip > 0) {
+                timelineBallFalling.playLoopSkipping(RepeatBehavior.REVERSE, toSkip);
+            } else {
+                timelineBallFalling.playLoop(RepeatBehavior.REVERSE);
             }
         });
 
         JButton cancelTimeline = new JButton("cancel");
-        cancelTimeline.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (timelineBallFalling != null)
-                    timelineBallFalling.cancelAtCycleBreak();
-            }
+        cancelTimeline.addActionListener((ActionEvent e) -> {
+            if (timelineBallFalling != null)
+                timelineBallFalling.cancelAtCycleBreak();
         });
 
         JButton suspendTimeline = new JButton("suspend");
-        suspendTimeline.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (timelineBallFalling != null)
-                    timelineBallFalling.suspend();
-            }
+        suspendTimeline.addActionListener((ActionEvent e) -> {
+            if (timelineBallFalling != null)
+                timelineBallFalling.suspend();
         });
 
         JButton resumeTimeline = new JButton("resume");
-        resumeTimeline.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (timelineBallFalling != null)
-                    timelineBallFalling.resume();
-            }
+        resumeTimeline.addActionListener((ActionEvent e) -> {
+            if (timelineBallFalling != null)
+                timelineBallFalling.resume();
         });
 
         controls.add(runTimeline);
