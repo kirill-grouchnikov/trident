@@ -23,7 +23,7 @@ The goal of this project is to provide a powerful and extensible animation libra
 ### Key frames
 
 * [Key frames overview](www/KeyFrameOverview.md)
-* [Key frames SWT example](www/KeyFrameExample.md)
+* [Key frames Swing example](www/KeyFrameExample.md)
 
 ### Extending the core behavior
 
