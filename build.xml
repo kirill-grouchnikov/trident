@@ -47,8 +47,8 @@
 	<property name="trident.drop.dir" value="${module.trident.basedir}/drop" />
 	<property name="trident.lib.dir" value="${module.trident.basedir}/lib" />
 	<property name="trident.src.dir" value="${module.trident.basedir}/src/" />
-	<property name="trident.version" value="1.5.00-dev" />
-	<property name="trident.versionName" value="1.5.00-dev Faraday" />
+	<property name="trident.version" value="1.5.00-rc" />
+	<property name="trident.versionName" value="1.5.00-rc Faraday" />
 
 	<path id="trident.module.bootclasspath">
 		<!-- Paths to be included in compilation bootclasspath -->
