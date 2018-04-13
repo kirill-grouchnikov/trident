@@ -1,6 +1,6 @@
 ## Trident animation library
 
-The goal of this project is to provide a powerful and extensible animation library for Java applications. It requires Java 8+ at compile and runtime, and is available under [BSD license](http://www.opensource.org/licenses/bsd-license.php).
+The goal of this project is to provide a powerful and extensible animation library for Java applications. It requires Java 8+ at compile and runtime, and is available under [BSD license](https://opensource.org/licenses/BSD-3-Clause).
 
 ### Trident basic concepts
 
@@ -23,7 +23,7 @@ The goal of this project is to provide a powerful and extensible animation libra
 ### Key frames
 
 * [Key frames overview](www/KeyFrameOverview.md)
-* [Key frames Swing example](www/KeyFrameExample.md)
+* [Key frames SWT example](www/KeyFrameExample.md)
 
 ### Extending the core behavior
 
