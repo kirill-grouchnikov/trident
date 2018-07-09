@@ -1,6 +1,0 @@
-1.0 - Acumen
-1.1 - Bogeyman
-1.2 - Cookie Jar
-1.3 - Diamond in the Sky
-1.4 - Enchanted
-1.5 - Faraday
